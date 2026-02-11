@@ -1,75 +1,44 @@
-
 services:
-
-
-  mariadb:
+  # --- The Frontend ---
+  frontend:
     build:
-      context: ./requirements/mariadb
+      context: ./services/frontend
       dockerfile: Dockerfile
-    container_name: mariadb
-    image: mariadb
-    env_file: .env
-    restart: always
+    container_name: frontend
     networks:
-      - inception_net
-    volumes:
-      - mariadb-data:/var/lib/mysql
+      - transcendence-net
+    restart: always
 
-  wordpress:
-    build:
-      context: ./requirements/wordpress
-      dockerfile: Dockerfile
-    container_name: wordpress
-    image: wordpress
-    env_file: .env
-    restart: always
-    depends_on:
-      - mariadb
-    networks:
-      - inception_net
+  # --- The frontend DEV ---
+  frontend-dev:
+    image: node:lts-alpine
+    container_name: frontend-dev
+    working_dir: /app
     volumes:
-      - website-data:/var/www/html
-
-  ngnix:
-    build:
-      context: ./requirements/nginx
-      dockerfile: Dockerfile
-    container_name: nginx
-    image: ngnix
-    env_file: .env
-    restart: always
-    depends_on:
-      - wordpress
+      - ./services/frontend/app:/app
+      - /app/node_modules
+    # We don't even need to expose 5173 to your host anymore! 
+    # The Gateway handles it on 443.
+    command: sh -c "npm install && npm run dev -- --host"
     networks:
-      - inception_net
-    volumes:
-      - website-data:/var/www/html
+      - transcendence-net    
+  
+  # --- The API Gateway ---
+  gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: gateway
     ports:
       - "443:443"
+    networks:
+      - transcendence-net
+    depends_on:
+      - frontend
+    restart: always
 
 
-
-
-
-
-
+# --- Network Definition ---
 networks:
-  inception_net:
+  transcendence-net:
     driver: bridge
-
-
-volumes:
-  website-data:
-    name: wordpress
-    driver: local
-    driver_opts:
-      type: 'none'
-      o: bind
-      device: /home/ouboukou/data/wordpress
-  mariadb-data:
-    name: mariadb
-    driver: local
-    driver_opts:
-      type: 'none'
-      o: bind
-      device: /home/ouboukou/data/mariadb

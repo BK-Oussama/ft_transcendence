@@ -1,10 +1,22 @@
-FROM debian:11
+FROM nginx:alpine
 
-# Install necessary packages
-RUN apt update && apt install nginx openssl procps -y
+# Install openssl to generate certificates
+RUN apk add --no-cache openssl
 
-COPY ./tools/conf/default /etc/nginx/sites-enabled/default
+# Generate self-signed certificate (365 days)
+RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+    -keyout /etc/ssl/private/nginx-selfsigned.key \
+    -out /etc/ssl/certs/nginx-selfsigned.crt \
+    -subj "/C=MO/ST=BM/L=BenGuerir/O=42/OU=ft_transcendence/CN=localhost"
 
-RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt -subj "/CN=localhost"
+
+COPY ./tools/index.html /usr/share/nginx/html/index.html
+
+# Copy our custom configuration
+COPY ./tools/nginx.conf /etc/nginx/conf.d/default.conf
+
+
+# Expose only the secure port
+EXPOSE 443
 
 CMD ["nginx", "-g", "daemon off;"]

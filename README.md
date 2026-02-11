@@ -6,3 +6,4 @@ ft_transcendence is a full-stack web application built as part of the 42 curricu
 We need to discuss how Abdllah will generate or ensure that each API call is authenticated (JWT).
 
 we may use gRPC
+
