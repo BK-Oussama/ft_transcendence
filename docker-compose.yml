@@ -35,7 +35,48 @@ services:
       - transcendence-net
     depends_on:
       - frontend
+      - auth
     restart: always
+
+
+
+  auth:
+    build:
+      context: ./services/auth
+      dockerfile: Dockerfile
+    container_name: auth
+    ports:
+      - "8443:443"
+    env_file:
+      - ./services/auth/app/.env
+    environment:
+      - DATABASE_URL=postgresql://user:pass@auth-db:5432/auth_db?schema=public
+      
+    networks:
+      - transcendence-net
+    depends_on:
+      auth-db:
+        condition: service_healthy # Wait for DB to be "Healthy"
+    restart: always
+
+  auth-db:
+    image: postgres:15-alpine
+    container_name: auth-db
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_DB=auth_db
+    healthcheck: # Ensure DB is ready before NestJS starts
+      test: ["CMD-SHELL", "pg_isready -U user -d auth_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./databases/auth_db:/var/lib/postgresql/data
+    networks:
+      - transcendence-net
+    restart: always
+
 
 
 # --- Network Definition ---

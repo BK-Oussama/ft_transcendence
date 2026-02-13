@@ -9,12 +9,10 @@ RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
     -out /etc/ssl/certs/nginx-selfsigned.crt \
     -subj "/C=MO/ST=BM/L=BenGuerir/O=42/OU=ft_transcendence/CN=localhost"
 
-
 COPY ./tools/index.html /usr/share/nginx/html/index.html
 
 # Copy our custom configuration
 COPY ./tools/nginx.conf /etc/nginx/conf.d/default.conf
-
 
 # Expose only the secure port
 EXPOSE 443
