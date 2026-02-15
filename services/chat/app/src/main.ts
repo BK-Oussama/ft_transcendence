@@ -17,6 +17,6 @@ async function bootstrap() {
 
   app.enableShutdownHooks();
   await app.listen(443);
-  console.log('🚀 Auth Service secure on port 443');
+  console.log('🚀 Chat Service secure on port 443');
 }
 bootstrap();

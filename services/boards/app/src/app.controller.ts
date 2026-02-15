@@ -8,10 +8,11 @@ export class AppController {
   @Get('health')
   async health() {
     try {
-      await this.prisma.user.count();
+      await this.prisma.board.count();
       return { status: 'ok', database: 'connected' };
     } catch (e) {
       return { status: 'error', database: 'disconnected' };
     }
   }
 }
+

@@ -35,18 +35,21 @@ RUN npx prisma generate
 RUN npm run build
 
 # --- STAGE 2: Run ---
+
+# --- STAGE 2: Run ---
 FROM node:22-alpine
 WORKDIR /app
 
-# Copy only what is needed from the builder
+# Copy the compiled code
 COPY --from=builder /app/dist ./dist
+
+# Copy the node_modules (This now includes your generated Prisma Client!)
 COPY --from=builder /app/node_modules ./node_modules
+
+# Copy the rest
 COPY --from=builder /app/secrets ./secrets
 COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/prisma.config.* ./ 
-COPY app/package*.json ./
+COPY --from=builder /app/prisma.config.* ./
+COPY --from=builder /app/package*.json ./
 
-EXPOSE 443
-
-# Start with database migration deployment
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]
+CMD ["sh", "-c", "npx prisma db push && node dist/main"]
