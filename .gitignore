@@ -1,0 +1,21 @@
+# --- Databases (Bind Mounts) ---
+databases/auth_db/*
+databases/boards_db/*
+databases/chat_db/*
+databases/dashboard_db/*
+
+# Keep the directories themselves but ignore the content
+!databases/.gitkeep
+
+# --- Node / NestJS ---
+node_modules/
+dist/
+*.log
+.npm/
+
+# --- Environment & Secrets ---
+.env
+
+# Ignore the generated SSL certs if they are in the app folders
+secrets/*.pem
+secrets/*.crt

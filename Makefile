@@ -1,17 +1,20 @@
 
-
-# --- Variables ---
 COMPOSE = docker compose -f ./docker-compose.yml
+DB_DIRS = databases/auth_db databases/boards_db databases/chat_db databases/dashboard_db
 
-# --- Development (Default) ---
-# This runs 'gateway' and 'frontend-dev' for Hot Reloading
-all: 
+all: setup
 	$(COMPOSE) up --build gateway frontend-dev
 
+# --- Internal: Ensure DB directories exist with user permissions ---
+setup:
+	@mkdir -p $(DB_DIRS)
+
+# --- Development (Default) ---
+
 # --- Production ---
-# This runs the full Nginx multi-stage build
-prod:
+prod: setup
 	$(COMPOSE) up --build gateway frontend
+	
 
 # --- Basic Commands ---
 down:
@@ -21,23 +24,4 @@ re: down all
 
 fclean: down
 	docker compose -f ./docker-compose.yml down --volumes --remove-orphans && docker builder prune -af 
-
-
-
-# all: build up 
-	
-# build:
-# 	docker compose -f ./docker-compose.yml build
-
-# up:
-# 	docker compose -f ./docker-compose.yml up -d
-
-# down:
-# 	docker compose -f ./docker-compose.yml down
-
-# re: down all
-
-# fclean: down
-# 	docker compose -f ./docker-compose.yml down --volumes --remove-orphans && docker builder prune -af 
-
-
+	rm -rf databases/*
