@@ -1,8 +1,8 @@
 # --- Databases (Bind Mounts) ---
-databases/auth_db/*
-databases/boards_db/*
-databases/chat_db/*
-databases/dashboard_db/*
+databases/auth_db/
+databases/boards_db/
+databases/chat_db/
+databases/dashboard_db/
 
 # Keep the directories themselves but ignore the content
 !databases/.gitkeep
@@ -18,4 +18,4 @@ dist/
 
 # Ignore the generated SSL certs if they are in the app folders
 secrets/*.pem
-secrets/*.crt
+secrets/*.crtanmshi n

@@ -16,14 +16,6 @@ RUN mkdir -p /app/secrets && \
 COPY app/package*.json ./
 RUN npm install
 
-# # Copy source and config (Absolute paths inside /app)
-# COPY app/tsconfig.json ./
-# # COPY app/prisma.config.* ./  no need get genrte with npx prisma
-# COPY app/prisma ./prisma/
-# COPY app/.env 
-# COPY app/src ./src
-
-
 COPY app/.env ./           
 COPY app/tsconfig.json ./
 COPY app/prisma.config.* ./ 
@@ -32,9 +24,8 @@ COPY app/src ./src
 
 # Generate the Prisma 7 client and Build JS
 RUN npx prisma generate
-RUN npm run build
+RUN npm run build 
 
-# --- STAGE 2: Run ---
 
 # --- STAGE 2: Run ---
 FROM node:22-alpine
