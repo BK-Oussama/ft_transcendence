@@ -17,3 +17,6 @@ Once your 4 developers start working and you have "real" data you care about, yo
     You change the Dockerfile back to npx prisma migrate deploy.
 
     migrate deploy is 100% safe—it only applies new SQL changes and never deletes data.
+
+
+    I HAVE ADDED THIS TEXT FOR TESTING AND PUSHING THE AUTH-BRANCH, BEFOR PUSHING THE DECLARED NEW LOCAL BRANCH TO REMOT.

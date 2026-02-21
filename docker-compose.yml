@@ -71,11 +71,10 @@ services:
       timeout: 5s
       retries: 5
     volumes:
-      - ./databases/auth_db:/var/lib/postgresql/data
+      - ${HOME}/ft_dbs/auth_db:/var/lib/postgresql/data
     networks:
       - transcendence-net
     restart: always
-
   # --- Boards Service ---
   boards:
     build:
@@ -108,7 +107,7 @@ services:
       timeout: 5s
       retries: 5
     volumes:
-      - ./databases/boards_db:/var/lib/postgresql/data
+      - ${HOME}/ft_dbs/boards_db:/var/lib/postgresql/data
     networks:
       - transcendence-net
     restart: always
@@ -146,6 +145,7 @@ services:
       retries: 5
     volumes:
       - ./databases/chat_db:/var/lib/postgresql/data
+
     networks:
       - transcendence-net
     restart: always
@@ -183,6 +183,7 @@ services:
       retries: 5
     volumes:
       - ./databases/dashboard_db:/var/lib/postgresql/data
+
     networks:
       - transcendence-net
     restart: always
@@ -193,129 +194,3 @@ networks:
 
 
     
-
-# services:
-#   # --- The Frontend ---
-#   frontend:
-#     build:
-#       context: ./services/frontend
-#       dockerfile: Dockerfile
-#     container_name: frontend
-#     networks:
-#       - transcendence-net
-#     restart: always
-
-#   # --- The frontend DEV ---
-#   frontend-dev:
-#     image: node:lts-alpine
-#     container_name: frontend-dev
-#     working_dir: /app
-#     volumes:
-#       - ./services/frontend/app:/app
-#       - /app/node_modules
-#     # We don't even need to expose 5173 to your host anymore! 
-#     # The Gateway handles it on 443.
-#     command: sh -c "npm install && npm run dev -- --host"
-#     networks:
-#       - transcendence-net    
-  
-#   # --- The API Gateway ---
-#   gateway:
-#     build:
-#       context: ./api-gateway
-#       dockerfile: Dockerfile
-#     container_name: gateway
-#     ports:
-#       - "443:443"
-#     networks:
-#       - transcendence-net
-#     depends_on:
-#       - frontend
-#       - auth
-#     restart: always
-
-
-
-#   auth:
-#     build:
-#       context: ./services/auth
-#       dockerfile: Dockerfile
-#     container_name: auth
-#     ports:
-#       - "8443:443"
-#     env_file:
-#       - ./services/auth/app/.env
-#     environment:
-#       - DATABASE_URL=postgresql://user:pass@auth-db:5432/auth_db?schema=public
-      
-#     networks:
-#       - transcendence-net
-#     depends_on:
-#       auth-db:
-#         condition: service_healthy # Wait for DB to be "Healthy"
-#     restart: always
-
-#   auth-db:
-#     image: postgres:15-alpine
-#     container_name: auth-db
-#     environment:
-#       - POSTGRES_USER=user
-#       - POSTGRES_PASSWORD=pass
-#       - POSTGRES_DB=auth_db
-#     healthcheck: # Ensure DB is ready before NestJS starts
-#       test: ["CMD-SHELL", "pg_isready -U user -d auth_db"]
-#       interval: 5s
-#       timeout: 5s
-#       retries: 5
-#     volumes:
-#       - ./databases/auth_db:/var/lib/postgresql/data
-#     networks:
-#       - transcendence-net
-#     restart: always
-
-
-
-
-
-#   boards:
-#     build:
-#       context: ./services/boards
-#       dockerfile: Dockerfile
-#     container_name: boards
-#     ports:
-#       - "8443:443"
-#     env_file:
-#       - ./services/boards/app/.env
-#     environment:
-#       - DATABASE_URL=postgresql://user:pass@boards-db:5432/boards_db?schema=public
-#     networks:
-#       - transcendence-net
-#     depends_on:
-#       boards-db:
-#         condition: service_healthy # Wait for DB to be "Healthy"
-#     restart: always
-
-#   boards-db:
-#     image: postgres:15-alpine
-#     container_name: boards-db
-#     environment:
-#       - POSTGRES_USER=user
-#       - POSTGRES_PASSWORD=pass
-#       - POSTGRES_DB=board_db
-#     healthcheck: # Ensure DB is ready before NestJS starts
-#       test: ["CMD-SHELL", "pg_isready -U user -d board_db"]
-#       interval: 5s
-#       timeout: 5s
-#       retries: 5
-#     volumes:
-#       - ./databases/boards_db:/var/lib/postgresql/data
-#     networks:
-#       - transcendence-net
-#     restart: always
-
-
-
-# # --- Network Definition ---
-# networks:
-#   transcendence-net:
-#     driver: bridge
