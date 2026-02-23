@@ -20,6 +20,9 @@ prod: setup
 	$(COMPOSE) up --build gateway frontend
 
 
+down:
+	$(COMPOSE) down
+
 # --- Cleanup Rules ---
 
 # Clean: Stops containers and removes the DB data (The "Reset" button)
