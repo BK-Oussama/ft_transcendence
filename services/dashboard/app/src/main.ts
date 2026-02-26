@@ -1,9 +1,11 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common'; // Added for API Contracts
+import { ValidationPipe } from '@nestjs/common';
 import * as fs from 'fs';
+import * as path from 'path';
 
 async function bootstrap() {
+
   const httpsOptions = {
     key: fs.readFileSync('./secrets/privkey.pem'),
     cert: fs.readFileSync('./secrets/cert.pem'),
@@ -11,12 +13,16 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule, { httpsOptions });
 
-  // API CONTRACT ENFORCEMENT
-  // This ensures only data defined in your DTOs gets through!
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true,
+    transform: true,
+  }));
 
-  app.enableShutdownHooks();
-  await app.listen(443);
-  console.log('🚀 Dashboard Service secure on port 443');
+  app.enableCors();
+
+  const port = process.env.PORT || 443;
+  await app.listen(port);
+
+  console.log(`Prokect Service running on port ${port}`);
 }
 bootstrap();
