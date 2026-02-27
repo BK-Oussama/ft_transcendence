@@ -4,6 +4,7 @@ import { CreateUserDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { GoogleAuthGuard } from './google-guards/google-guards.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -28,6 +29,19 @@ export class AuthController {
         const refreshToken = req.cookies?.refreshToken;
         if (!refreshToken) throw new UnauthorizedException('Missing refresh token');
         return this.authService.refresh(refreshToken, res);
+    }
+
+    @UseGuards(GoogleAuthGuard)
+     @Get('google')
+    async googlelogin() {
+        // This route will be handled by the GoogleStrategy
+    }
+
+    @UseGuards(GoogleAuthGuard)
+     @Get('google/callback')
+    async googlecallback(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+        const response = await this.login(req.user as any, res);
+        res.redirect(process.env.GOOGLE_FRONTEND_REDIRECT_URL + '?token=' + (response as any).accessToken);
     }
 
     @UseGuards(JwtAuthGuard)
