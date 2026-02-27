@@ -22,6 +22,15 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
-    "typeRoots": ["./node_modules/@types", "./src/auth/types"]
-  }
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/auth/types"
+    ]
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "prisma.config.ts",
+    "prisma.config.mjs"
+  ]
 }
