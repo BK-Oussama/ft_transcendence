@@ -32,6 +32,9 @@ RUN npm run build
 FROM node:22-alpine
 WORKDIR /app
 
+#the final image does not have openssl installed we should install it
+RUN apk add --no-cache openssl
+
 # Copy the compiled code
 COPY --from=builder /app/dist ./dist
 
