@@ -1,16 +1,49 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
 generator client {
-  provider        = "prisma-client-js" // Add the "-js" suffix
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client-js"
+  // output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
-// Minimal starter table for the Dashboard developer
-model Activity {
-  id          Int      @id @default(autoincrement())
-  type        String   // e.g., "BOARD_CREATED", "TASK_COMPLETED"
-  description String
-  createdAt   DateTime @default(now())
+model Project {
+  id Int @id @default(autoincrement())
+  title String
+  description String?
+  status String @default("ACTIVE")
+  startDate DateTime? @map("start_date")
+  dueDate DateTime? @map("due_date")
+  createdAt DateTime  @default(now())  @map("created_at")
+  updatedAt DateTime  @updatedAt  @map("updated_at")
+
+  members ProjectMember[]
+
+  @@map("projects")
+}
+
+model ProjectMember {
+  id Int @id @default(autoincrement())
+  projectId Int @map("project_id")
+  userId  Int @map("user_id")
+  role ProjectRole  @default(MEMBER)
+  joinedAt DateTime @default(now()) @map("joined_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@map("project_members")
+}
+
+enum ProjectRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
 }
