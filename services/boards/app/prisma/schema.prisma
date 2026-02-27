@@ -1,15 +1,36 @@
 generator client {
-  provider        = "prisma-client-js"
+  provider        = "prisma-client-js" // Add the "-js" suffix
   previewFeatures = ["driverAdapters"]
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-// Minimal starter table for the Boards developer
-model Board {
-  id        Int      @id @default(autoincrement())
-  title     String
-  createdAt DateTime @default(now())
+// Minimal starter table for the Dashboard developer
+model Activity {
+  id          Int      @id @default(autoincrement())
+  type        String   // e.g., "BOARD_CREATED", "TASK_COMPLETED"
+  description String
+  createdAt   DateTime @default(now())
 }
+
+model Task {
+  id          Int      @id @default(autoincrement())
+  project_id  Int
+  title       String
+  description String?
+  status      String
+  priority    String   @default("Medium")
+  position    Int
+  assigned_to Int?
+  created_by  Int
+  attachment_url String?
+  start_date  DateTime?
+  due_date    DateTime?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+}
+
