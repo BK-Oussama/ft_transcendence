@@ -30,15 +30,15 @@ export class CreateTaskDto {
   @IsOptional()
   attachmentUrl?: string;
 
-  @IsOptional()
+  @IsNotEmpty()
   @Type(() => Number)
   @IsNumber()
-  projectId?: number;
+  projectId: number;
 
-  @IsOptional()
+  @IsNotEmpty()
   @Type(() => Number)
   @IsNumber()
-  createdBy?: number;
+  createdBy: number;
 
   @IsOptional()
   @Type(() => Number)
