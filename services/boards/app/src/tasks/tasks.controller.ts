@@ -9,7 +9,11 @@ import {
   ParseIntPipe,
   UseInterceptors,
   UploadedFile,
+  UseGuards,
+  Req,
+  Query,
 } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { TasksGateway } from './tasks.gateway';
@@ -19,6 +23,7 @@ import { diskStorage } from 'multer';
 import { extname } from 'path';
 
 @Controller('tasks')
+@UseGuards(JwtAuthGuard)
 export class TasksController {
   constructor(
     private readonly tasksService: TasksService,
@@ -26,8 +31,8 @@ export class TasksController {
   ) {}
 
   @Get()
-  async findAll() {
-    return await this.tasksService.findAll();
+  async findAll(@Query('projectId', ParseIntPipe) projectId: number) {
+    return await this.tasksService.findAll(projectId);
   }
 
   @Post()
@@ -47,11 +52,13 @@ export class TasksController {
   async create(
     @Body() createTaskDto: CreateTaskDto,
     @UploadedFile() file: Express.Multer.File,
+    @Req() req: any
   ) {
     if (file) {
       (createTaskDto as any).attachment_url = file.filename;
     }
-    const task = await this.tasksService.create(createTaskDto);
+    const realUserId = req.user.id;
+    const task = await this.tasksService.create(createTaskDto, realUserId);
     this.tasksGateway.broadcastTaskCreated(task);
     return task;
   }

@@ -7,6 +7,7 @@ import { AppService } from './app.service';
 import { TasksController } from './tasks/tasks.controller';
 import { TasksService } from './tasks/tasks.service';
 import { TasksGateway } from './tasks/tasks.gateway';
+import { JwtStrategy } from './auth/jwt.strategy';
 
 @Module({
   imports: [PrismaModule,
@@ -16,7 +17,7 @@ import { TasksGateway } from './tasks/tasks.gateway';
     }),
   ],
   controllers: [AppController, TasksController],
-  providers: [AppService, TasksService, TasksGateway],
+  providers: [AppService, TasksService, TasksGateway, JwtStrategy],
 })
 export class AppModule {}
 
