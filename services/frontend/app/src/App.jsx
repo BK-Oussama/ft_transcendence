@@ -3,6 +3,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from './components/layout/MainLayout';
 import BoardPage from './features/boards/BoardPage';
+import Home from './features/home/Home';
 
 // Placeholder components
 const HomePlaceholder = () => <div className="p-20 text-center"><h1>Welcome to our Project (Home Page)</h1><p>Landing page content here...</p></div>;
@@ -14,7 +15,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         {/* 1. THE LANDING ZONE - No Sidebar, just the Home Page */}
-        <Route path="/" element={<HomePlaceholder />} />
+        <Route path="/" element={<Home />} />
 
         {/* 2. THE SECURITY ZONE - Login/Register, No Sidebar */}
         <Route path="/auth" element={<AuthPlaceholder />} />

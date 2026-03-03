@@ -20,3 +20,27 @@ Once your 4 developers start working and you have "real" data you care about, yo
 
 
     I HAVE ADDED THIS TEXT FOR TESTING AND PUSHING THE AUTH-BRANCH, BEFOR PUSHING THE DECLARED NEW LOCAL BRANCH TO REMOT.
+
+
+The users.ts file is a perfect "Mock" for now, but as you scale, we’ll eventually move those IDs to the database.
+
+
+
+
+
+Internal Readme: Frontend Integration Guide
+
+    🚀 How to Add Your Feature
+
+        Folder Structure: Create your service folder under src/features/[your-feature].
+
+        State Safety: Always use if (!Array.isArray(data)) checks before mapping/filtering API results to prevent "White Screen" crashes.
+
+        API Calls: Never use raw axios. Import the shared client: import api from '@/api/client'.
+
+        Routing: Add your route to src/App.tsx. Use the MainLayout if you want the shared Sidebar/Navbar.
+
+        Styles: Use Tailwind classes. If you add new folders, ensure tailwind.config.js is updated to scan them.
+
+        Environment: The Gateway is at https://localhost/api. Avoid hardcoding localhost:3000 ports.
+        
