@@ -6,7 +6,7 @@ const Home = () => {
     { name: 'Kanban Board', path: '/boards', icon: LayoutDashboard, desc: 'Organize tasks and track progress.' },
     { name: 'Team Chat', path: '/chat', icon: MessageSquare, desc: 'Discuss projects in real-time.' },
     { name: 'Dashboard', path: '/dashboard', icon: Activity, desc: 'Overview of your productivity.' },
-    { name: 'Account', path: '/auth', icon: ShieldCheck, desc: 'Manage your profile and security.' },
+    { name: 'Account', path: '/login', icon: ShieldCheck, desc: 'Manage your profile and security.' },
   ];
 
   return (
