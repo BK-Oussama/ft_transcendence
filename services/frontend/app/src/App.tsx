@@ -1,8 +1,6 @@
 // import './index.css'; old
 
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import MainLayout from './components/layout/MainLayout';
-import BoardPage from './features/boards/BoardPage';
 import Home from './features/home/Home';
 import { RegisterPage } from './pages/RegisterPage';
 import { LoginPage } from './pages/LoginPage';
@@ -30,15 +28,7 @@ export default function App() {
           <Route path="/oauth-success" element={<OAuthSuccess />} />
           {/* <Route path="/auth" element={<AuthPlaceholder />} /> */}
 
-          {/* 3. THE APP ZONE - Everything inside here HAS the Sidebar */}
-          <Route element={<MainLayout />}>
-            <Route path="/boards" element={<BoardPage />} />
-            <Route path="/chat" element={<ChatPlaceholder />} />
-            <Route path="/tasks" element={<TasksPlaceholder />} />
-            <Route path="/calendar" element={<CalendarPlaceholder />} />
-            <Route path="/settings" element={<SettingsPlaceholder />} />
-            <Route path="/dashboard" element={<div>Dashboard Page</div>} />
-          </Route>
+       
 
           {/* 4. 404 falback - THE SAFETY NET - Redirect unknown URLs to Home */}
           <Route path="*" element={<Navigate to="/" replace />} />
