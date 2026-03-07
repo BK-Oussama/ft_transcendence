@@ -1,0 +1,6 @@
+
+i do need to understand and visualze the full request cycle from browser client to frontend client to the api-gateway to the backend services, which are the files that control the trafic in each service, and what is our staregy to make sure the comunication is well established never broke.
+
+i do have to visualze all of this in my mind and draw a schema.
+
+now that abbdlah merged his frotnend code, my task now is to make sure that the frontend is speaking with the backend for the auth service at start, and then all other services
