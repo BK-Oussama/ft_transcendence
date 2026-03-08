@@ -10,7 +10,8 @@ import { TasksGateway } from './tasks/tasks.gateway';
 import { JwtStrategy } from './auth/jwt.strategy';
 
 @Module({
-  imports: [PrismaModule,
+  imports: [
+    PrismaModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
       serveRoot: '/uploads',

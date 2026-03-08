@@ -44,3 +44,32 @@ Internal Readme: Frontend Integration Guide
 
         Environment: The Gateway is at https://localhost/api. Avoid hardcoding localhost:3000 ports.
         
+
+# TESTING AUTH with backend services:
+
+- Create the User (If you haven't yet):
+curl -k -i -X POST https://localhost/api/auth/register \
+     -H "Content-Type: application/json" \
+     -d '{
+       "email": "oussama@1337.ma",
+       "password": "SecurityFirst123",
+       "firstname": "Oussama",
+       "lastname": "BK"
+     }'
+
+- Login to get the Access Token
+curl -k -i -X POST https://localhost/api/auth/login \
+     -H "Content-Type: application/json" \
+     -d '{
+       "email": "oussama@1337.ma",
+       "password": "SecurityFirst123"
+     }'
+
+- Use the Token for Boards or any other service:
+
+# Set a temporary variable to make it easier (Paste your token here)
+TOKEN="eyJhbGciOiJIUzI1NiIsInR5..."
+
+# Now call the Boards Health Check
+curl -k -i -X GET https://localhost/api/boards/health \
+     -H "Authorization: Bearer $TOKEN"

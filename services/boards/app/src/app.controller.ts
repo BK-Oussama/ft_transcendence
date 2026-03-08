@@ -1,7 +1,7 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
 import { AppService } from './app.service';
-
+import { JwtAuthGuard } from './auth/jwt-auth.guard'; 
 
 @Controller('boards') // Added a prefix for clean routing
 export class AppController {
