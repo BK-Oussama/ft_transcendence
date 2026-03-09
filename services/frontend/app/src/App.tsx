@@ -1,39 +1,43 @@
-// import './index.css'; old
-
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+// Feature Imports
 import Home from './features/home/Home';
-import { RegisterPage } from './pages/RegisterPage';
-import { LoginPage } from './pages/LoginPage';
+import BoardPage from './features/boards/KanbanBoardPage'; // Import your Board UI
+import { RegisterPage } from './features/auth/pages/RegisterPage'; // Updated paths
+import { LoginPage } from './features/auth/pages/LoginPage'; // Updated paths
 import OAuthSuccess from './features/auth/OAuthSuccess';
+import { ProtectedRoute } from './features/auth/ProtectedRoute';
+import MainLayout from './components/layout/MainLayout';
 
 import { AuthProvider } from './context/AuthContext';
-
-// Placeholder components
-const ChatPlaceholder = () => <div className="p-10"><h1>Chat Service Coming Soon</h1></div>;
-const TasksPlaceholder = () => <div className="p-10"><h1>Tasks Page Coming Soon</h1></div>;
-const CalendarPlaceholder = () => <div className="p-10"><h1>Calendar Page Coming Soon</h1></div>;
-const SettingsPlaceholder = () => <div className="p-10"><h1>Settings Page Coming Soon</h1></div>;
 
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          {/* 1. THE LANDING ZONE - No Sidebar, just the Home Page */}
+          {/* 1. PUBLIC ZONE - No Sidebar */}
           <Route path="/" element={<Home />} />
-
-          {/* 2. THE SECURITY ZONE - Login/Register, No Sidebar */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/oauth-success" element={<OAuthSuccess />} />
-          {/* <Route path="/auth" element={<AuthPlaceholder />} /> */}
 
-       
+          {/* 2. PROTECTED ZONE - Wraps everything in Sidebar + Auth Check */}
+          <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+            <Route path="/dashboard" element={<div>Welcome to Dashboard</div>} />
+            
+            {/* THIS IS THE MISSING LINK! */}
+            <Route path="/boards" element={<BoardPage />} />
+            
+            {/* Future Chat Route */}
+            <Route path="/chat" element={<div>Chat Coming Soon</div>} />
+          </Route>
 
-          {/* 4. 404 falback - THE SAFETY NET - Redirect unknown URLs to Home */}
+          {/* 3. SAFETY NET */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
   );
 }
+
+ 

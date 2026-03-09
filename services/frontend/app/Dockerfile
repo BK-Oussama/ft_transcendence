@@ -18,7 +18,7 @@ COPY ./app/index.html ./
 COPY ./app/vite.config.js ./
 COPY ./app/postcss.config.js ./
 COPY ./app/src ./src
-# COPY ./app/public ./public
+COPY ./app/public ./public
 
 
 # Build the project (generates the 'dist' folder)

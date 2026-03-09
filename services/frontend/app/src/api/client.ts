@@ -8,21 +8,34 @@ const api = axios.create({
 });
 
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    console.error('API Error:', error.config?.url, error.response?.status, error.response?.data);
-    if (error.response?.status === 401) {
-      localStorage.removeItem("access_token");
-      const currentPath = window.location.pathname;
-      if (currentPath !== '/login' && currentPath !== '/register') {
+  (response) => response, 
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        const res = await api.post('/auth/refresh');
+        
+        const { accessToken } = res.data;
+
+        localStorage.setItem("access_token", accessToken);
+
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+
+        return api(originalRequest);
+
+      } catch (refreshError) {
+        localStorage.removeItem("access_token");
         window.location.href = "/login";
       }
     }
+
     return Promise.reject(error);
   }
 );
+
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("access_token");
