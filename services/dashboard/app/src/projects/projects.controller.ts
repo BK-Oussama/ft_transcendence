@@ -6,8 +6,10 @@ import { ProjectMembersService } from 'src/project-members/project-members.servi
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 
 @Controller('api/projects')
+@UseGuards(JwtAuthGuard) 
 export class ProjectsController {
     constructor(private readonly projectsService: ProjectsService) {}
 

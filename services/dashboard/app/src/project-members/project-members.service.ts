@@ -44,19 +44,25 @@ export class ProjectMembersService {
         const members = await this.prisma.projectMember.findMany({
             where: { projectId: projectId },
         });
-
-        // TODO: replace this with a real call to Auth Service
-        // return members with fake user info for now
     
+        // get all user ids
+        const userIds = members.map((m) => m.userId);
+
+        // call Auth Service for each user
+        // TODO: replace URL with your teammate's actual endpoint
+        const users = await Promise.all(
+            userIds.map(async (id) => {
+                const { data } = await firstValueFrom(
+                    this.httpService.get(`http://auth-service/api/users/${id}`)
+                );
+                return data;
+            })
+        );
+
         return members.map((member) => ({
             userId: member.userId,
             role: member.role,
-            user: {
-                id: member.userId,
-                name: `User ${member.userId}`, 
-                email: `user${member.userId}@temp.com`,
-                avatar: null,
-            },
+            user: users.find((u) => u.id === member.userId),
         }));
     }
 
