@@ -28,9 +28,11 @@ export class ProjectsService {
         });
     }
 
-    // get all projects
-    async findAll() {
+    async findAll(userId: number) {
         return this.prisma.project.findMany({
+            where: {
+               members: { some: { userId } }
+            },
             include: { members: true },
         });
     }
