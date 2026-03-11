@@ -11,10 +11,9 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 @UseGuards(JwtAuthGuard) 
 export class ProjectsController {
     // Inject both the ProjectsService and PrismaService
+    // NOTE: you should not injectt prismaService here (i only inject it in the service)
     constructor(
-        private readonly projectsService: ProjectsService,
-        private readonly prisma: PrismaService
-    ) {}
+        private readonly projectsService: ProjectsService) {}
 
     /**
      * INFRASTRUCTURE TEST ROUTE
@@ -37,33 +36,18 @@ export class ProjectsController {
      */
     @Get('health')
     async health() {
-        try {
-            // Check the 'Project' model from your dashboard schema
-            const projectCount = await this.prisma.project.count();
-            return { 
-                status: 'ok', 
-                database: 'connected', 
-                model: 'Project',
-                totalProjects: projectCount 
-            };
-        } catch (e) {
-            return { 
-                status: 'error', 
-                database: 'disconnected',
-                error: e.message 
-            };
-        }
+       return this.projectsService.health();
     }
 
 
-  /**
-   * ROOT HELLO ROUTE
-   * URL: GET https://localhost/api/auth
-   */
-  @Get()
-  getHello(): string {
-    return this.projectsService.getHello();
-  }
+    /**
+     * ROOT HELLO ROUTE
+     * URL: GET https://localhost/api/auth
+     */
+    @Get()
+    getHello(): string {
+        return this.projectsService.getHello();
+    }
 
     // --- EXISTING PROJECT LOGIC BELOW ---
 

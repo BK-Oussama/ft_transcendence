@@ -2,12 +2,15 @@ import { ConflictException, Injectable, NotFoundException, ForbiddenException } 
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AddMemberDto } from './dto/add-member.dto';
 import { UpdateMemberRoleDto } from './dto/update-member-role.dto';
+import { firstValueFrom } from 'rxjs';
+import { HttpService } from '@nestjs/axios';
 
 @Injectable()
 export class ProjectMembersService {
-    constructor(private prisma: PrismaService) {}
-
-
+    constructor(
+        private prisma: PrismaService, 
+        private httpService: HttpService,
+    ) {}
 
     // add member to project
     async addMember(projectId: number, addMemberDto: AddMemberDto) {
@@ -53,7 +56,7 @@ export class ProjectMembersService {
         const users = await Promise.all(
             userIds.map(async (id) => {
                 const { data } = await firstValueFrom(
-                    this.httpService.get(`http://auth-service/api/users/${id}`)
+                    this.httpService.get<any>(`http://auth-service/api/users/${id}`)
                 );
                 return data;
             })

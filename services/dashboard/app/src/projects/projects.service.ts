@@ -11,6 +11,24 @@ export class ProjectsService {
         return 'Hello World!';
     }
 
+    async health() {
+        try {
+            const projectCount = await this.prisma.project.count();
+            return {
+                status: 'ok',
+                database: 'connected',
+                model: 'Project',
+                totalProjects: projectCount,
+            };
+        } catch (e) {
+            return {
+                status: 'error',
+                database: 'disconnected',
+                error: e.message,
+            };
+        }
+    }
+
     // create a new project
     async create(createProjectDto: CreateProjectDto, creatorUserId: number) {
 
