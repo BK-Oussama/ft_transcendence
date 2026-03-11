@@ -24,8 +24,12 @@ export class ProjectMembersController {
     }
 
     @Get()
-    findAll(@Param('projectId', ParseIntPipe) projectId: number) {
-        return this.projectMemberService.findAll(projectId);
+    findAll(
+        @Param('projectId', ParseIntPipe) projectId: number, 
+        @Headers('authorization') authorization: string,
+    ) {
+        const token = authorization?.replace('Bearer ', '');
+        return this.projectMemberService.findAll(projectId, token);
     }
 
     @Put(':userId')
