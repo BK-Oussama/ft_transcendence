@@ -6,11 +6,20 @@ WORKDIR /app
 COPY ./app/package.json ./app/package-lock.json ./
 RUN npm install
 
-# Copy only the necessary project files
+
+# Correct the paths: Copy from host ./app/ to container current dir (.)
+COPY ./app/tsconfig.json ./
+COPY ./app/tsconfig.app.json ./
+# Make sure you also have tsconfig.node.json if it's referenced!
+COPY ./app/tsconfig.node.json ./ 
+
+COPY ./app/tailwind.config.js ./
 COPY ./app/index.html ./
 COPY ./app/vite.config.js ./
-COPY ./app/public ./public
+COPY ./app/postcss.config.js ./
 COPY ./app/src ./src
+# COPY ./app/public ./public
+
 
 # Build the project (generates the 'dist' folder)
 RUN npm run build

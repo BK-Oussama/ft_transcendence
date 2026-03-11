@@ -5,11 +5,15 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 
 @Injectable()
 export class ProjectsService {
-    constructor(private prisma: PrismaService) {}
+    constructor(private prisma: PrismaService) { }
+
+    getHello(): string {
+        return 'Hello World!';
+    }
 
     // create a new project
     async create(createProjectDto: CreateProjectDto, creatorUserId: number) {
-        
+
         // create project and add creator as owner in a transaction
         return this.prisma.$transaction(async (tx) => {
             const project = await tx.project.create({

@@ -1,14 +1,27 @@
 generator client {
-  provider        = "prisma-client-js" // Add the "-js" suffix
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client-js"
 }
+
 datasource db {
   provider = "postgresql"
+  schemas  = ["auth"]
 }
 
 model User {
-  id       Int    @id @default(autoincrement())
-  username String @unique
-  email    String @unique
-  password String
+  id               Int       @id @default(autoincrement())
+  googleId         String?   @unique
+  email            String    @unique
+  passwordHash     String?
+  refreshTokenHash String?
+  firstName        String
+  lastName         String
+  avatarUrl        String?
+  bio              String?
+  jobTitle         String?
+  emailVerifiedAt  DateTime?
+  lastLoginAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@schema("auth")
 }

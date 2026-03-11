@@ -1,18 +1,25 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
+import { AppService } from './app.service';
+import { JwtAuthGuard } from './auth/jwt-auth.guard'; 
 
-@Controller() // Added a prefix for clean routing
+@Controller('boards') // Added a prefix for clean routing
 export class AppController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private readonly appService: AppService) {}
 
   @Get('health')
   async health() {
     try {
-      await this.prisma.board.count();
+      await this.prisma.activity.count();
       return { status: 'ok', database: 'connected' };
     } catch (e) {
       return { status: 'error', database: 'disconnected' };
     }
+  }
+    
+  @Get()
+  getHello(): string {
+    return this.appService.getHello();
   }
 }
 

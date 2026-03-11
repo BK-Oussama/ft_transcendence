@@ -20,3 +20,56 @@ Once your 4 developers start working and you have "real" data you care about, yo
 
 
     I HAVE ADDED THIS TEXT FOR TESTING AND PUSHING THE AUTH-BRANCH, BEFOR PUSHING THE DECLARED NEW LOCAL BRANCH TO REMOT.
+
+
+The users.ts file is a perfect "Mock" for now, but as you scale, we’ll eventually move those IDs to the database.
+
+
+
+
+
+Internal Readme: Frontend Integration Guide
+
+    🚀 How to Add Your Feature
+
+        Folder Structure: Create your service folder under src/features/[your-feature].
+
+        State Safety: Always use if (!Array.isArray(data)) checks before mapping/filtering API results to prevent "White Screen" crashes.
+
+        API Calls: Never use raw axios. Import the shared client: import api from '@/api/client'.
+
+        Routing: Add your route to src/App.tsx. Use the MainLayout if you want the shared Sidebar/Navbar.
+
+        Styles: Use Tailwind classes. If you add new folders, ensure tailwind.config.js is updated to scan them.
+
+        Environment: The Gateway is at https://localhost/api. Avoid hardcoding localhost:3000 ports.
+        
+
+# TESTING AUTH with backend services:
+
+- Create the User (If you haven't yet):
+curl -k -i -X POST https://localhost/api/auth/register \
+     -H "Content-Type: application/json" \
+     -d '{
+       "email": "oussama@1337.ma",
+       "password": "SecurityFirst123",
+       "firstname": "Oussama",
+       "lastname": "BK"
+     }'
+
+- Login to get the Access Token
+curl -k -i -X POST https://localhost/api/auth/login \
+     -H "Content-Type: application/json" \
+     -d '{
+       "email": "oussama@1337.ma",
+       "password": "SecurityFirst123"
+     }'
+
+- Use the Token for Boards or any other service:
+
+# Set a temporary variable to make it easier (Paste your token here)
+TOKEN="eyJhbGciOiJIUzI1NiIsInR5..."
+
+# Now call the Boards Health Check
+curl -k -i -X GET https://localhost/api/boards/health \
+     -H "Authorization: Bearer $TOKEN"

@@ -10,11 +10,11 @@ databases/dashboard_db/
 # --- Node / NestJS ---
 node_modules/
 dist/
+test/
 *.log
 .npm/
-
 # --- Environment & Secrets ---
-.env
+# .env hta npushiw eval 'test'
 
 # Ignore the generated SSL certs if they are in the app folders
 secrets/*.pem

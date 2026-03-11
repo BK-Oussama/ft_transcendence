@@ -11,12 +11,21 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule, { httpsOptions });
 
+  app.setGlobalPrefix('api');
+
   // API CONTRACT ENFORCEMENT
   // This ensures only data defined in your DTOs gets through!
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    })
+  );
 
   app.enableShutdownHooks();
-  await app.listen(443);
-  console.log('🚀 Boards Service secure on port 443');
+  app.enableCors();
+  await app.listen(process.env.PORT ?? 443);
+  console.log('🚀 Dashboard Service secure on port 443');
 }
 bootstrap();
