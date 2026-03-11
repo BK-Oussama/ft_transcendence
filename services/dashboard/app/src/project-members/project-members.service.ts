@@ -7,6 +7,8 @@ import { UpdateMemberRoleDto } from './dto/update-member-role.dto';
 export class ProjectMembersService {
     constructor(private prisma: PrismaService) {}
 
+
+
     // add member to project
     async addMember(projectId: number, addMemberDto: AddMemberDto) {
         // check if project exist
@@ -39,9 +41,29 @@ export class ProjectMembersService {
 
     // get all members of a project
     async findAll(projectId: number) {
-        return this.prisma.projectMember.findMany({
+        const members = await this.prisma.projectMember.findMany({
             where: { projectId: projectId },
         });
+    
+        // get all user ids
+        const userIds = members.map((m) => m.userId);
+
+        // call Auth Service for each user
+        // TODO: replace URL with your teammate's actual endpoint
+        const users = await Promise.all(
+            userIds.map(async (id) => {
+                const { data } = await firstValueFrom(
+                    this.httpService.get(`http://auth-service/api/users/${id}`)
+                );
+                return data;
+            })
+        );
+
+        return members.map((member) => ({
+            userId: member.userId,
+            role: member.role,
+            user: users.find((u) => u.id === member.userId),
+        }));
     }
 
     // update member role

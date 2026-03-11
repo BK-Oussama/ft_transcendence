@@ -5,10 +5,10 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-// Import PrismaService to perform the health check
-import { PrismaService } from '../prisma/prisma.service'; 
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 
-@Controller('dashboard')
+@Controller('api/projects')
+@UseGuards(JwtAuthGuard) 
 export class ProjectsController {
     // Inject both the ProjectsService and PrismaService
     constructor(
@@ -73,8 +73,8 @@ export class ProjectsController {
     }
 
     @Get()
-    findAll() {
-        return this.projectsService.findAll();
+    findAll(@CurrentUser() userId: number) {
+        return this.projectsService.findAll(userId);
     }
 
     @Get(':id')
