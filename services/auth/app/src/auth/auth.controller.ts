@@ -5,6 +5,8 @@ import {
   Get,
   Req,
   Res,
+  Param,
+  ParseIntPipe,
   UseGuards,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -62,6 +64,12 @@ export class AuthController {
   me(@Req() req: Request)
   {
     return this.authService.getUserById((req.user as any).id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('users/:id')
+  getUserById(@Param('id', ParseIntPipe) id: number) {
+    return this.authService.getUserById(id);
   }
 
   @UseGuards(JwtAuthGuard)
