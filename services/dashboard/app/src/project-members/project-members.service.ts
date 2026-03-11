@@ -43,7 +43,7 @@ export class ProjectMembersService {
     }
 
     // get all members of a project
-    async findAll(projectId: number) {
+    async findAll(projectId: number, token: string) {
         const members = await this.prisma.projectMember.findMany({
             where: { projectId: projectId },
         });
@@ -56,7 +56,11 @@ export class ProjectMembersService {
         const users = await Promise.all(
             userIds.map(async (id) => {
                 const { data } = await firstValueFrom(
-                    this.httpService.get<any>(`http://auth-service/api/users/${id}`)
+                    this.httpService.get<any>(`https://auth/api/auth/users/${id}`, {
+                        headers: {
+                            Authorization: `Bearer ${token}`, // forward the token
+                        },
+                    })
                 );
                 return data;
             })
