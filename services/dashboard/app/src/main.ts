@@ -16,13 +16,16 @@ async function bootstrap() {
   // remove this
   // app.setGlobalPrefix('api');
 
+  // JUST FOR TESTING THE FRONTEND
+  app.enableCors({
+    origin: 'http://localhost:5173', // your Vite dev server
+    credentials: true,
+  });
   
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
     transform: true,
   }));
-
-  app.enableCors();
 
   const port = process.env.PORT || 443;
   await app.listen(port);
