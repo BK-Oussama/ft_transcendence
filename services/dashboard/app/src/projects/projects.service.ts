@@ -41,7 +41,15 @@ export class ProjectsService {
         // create project and add creator as owner in a transaction
         return this.prisma.$transaction(async (tx) => {
             const project = await tx.project.create({
-                data: createProjectDto,
+                data: {
+                    ...createProjectDto,
+                    dueDate: createProjectDto.dueDate 
+                        ? new Date(createProjectDto.dueDate) 
+                        : undefined,
+                    startDate: createProjectDto.startDate 
+                        ? new Date(createProjectDto.startDate) 
+                        : undefined,
+                },
             });
 
             await tx.projectMember.create({
@@ -90,7 +98,7 @@ export class ProjectsService {
                         ...project,
                         owner: {
                             id: ownerData.id,
-                            name: ownerData.name,
+                            name: `${ownerData.firstName} ${ownerData.lastName}`,
                             email: ownerData.email,
                             avatar: ownerData.avatar || null,
                         },
