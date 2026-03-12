@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Headers, Put, Delete, Body, Param, UseGuards, ParseIntPipe } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
@@ -40,14 +40,15 @@ export class ProjectsController {
     }
 
 
+    // remove this, it cause conflict
     /**
      * ROOT HELLO ROUTE
      * URL: GET https://localhost/api/auth
      */
-    @Get()
-    getHello(): string {
-        return this.projectsService.getHello();
-    }
+    // @Get()
+    // getHello(): string {
+    //     return this.projectsService.getHello();
+    // }
 
     // --- EXISTING PROJECT LOGIC BELOW ---
 
@@ -57,8 +58,12 @@ export class ProjectsController {
     }
 
     @Get()
-    findAll(@CurrentUser() userId: number) {
-        return this.projectsService.findAll(userId);
+    findAll(
+        @CurrentUser() userId: number,
+        @Headers('authorization') authorization: string,
+    ) {
+        const token = authorization?.replace('Bearer ', '');
+        return this.projectsService.findAll(userId, token);
     }
 
     @Get(':id')

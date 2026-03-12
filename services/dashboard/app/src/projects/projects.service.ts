@@ -2,10 +2,16 @@ import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/commo
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { firstValueFrom } from 'rxjs';
+import { HttpService } from '@nestjs/axios';
+
 
 @Injectable()
 export class ProjectsService {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private  httpService: HttpService, 
+    ) { }
 
     getHello(): string {
         return 'Hello World!';
@@ -50,13 +56,53 @@ export class ProjectsService {
         });
     }
 
-    async findAll(userId: number) {
-        return this.prisma.project.findMany({
-            where: {
-               members: { some: { userId } }
+    async findAll(userId: number, token: string) {
+        // return this.prisma.project.findMany({
+        //     where: {
+        //        members: { some: { userId } }
+        //     },
+        //     include: { members: true },
+        // });
+
+        const projects = await this.prisma.project.findMany({
+            where: { 
+                members: { some: { userId } } 
             },
-            include: { members: true },
+            include: { 
+                members: true 
+            },
         });
+
+        const projectsWithOwner =  await Promise.all(
+            projects.map(async (project) => {
+                const ownerMember = project.members.find(m => m.role === 'OWNER');
+
+                if (!ownerMember) return { ...project, owner: null };
+
+                try {
+                    const { data: ownerData } = await firstValueFrom(
+                        this.httpService.get<any>(`https://auth/api/auth/users/${ownerMember.userId}`, {
+                            headers: { Authorization: `Bearer ${token}` },
+                        })
+                    );
+                    
+                    return {
+                        ...project,
+                        owner: {
+                            id: ownerData.id,
+                            name: ownerData.name,
+                            email: ownerData.email,
+                            avatar: ownerData.avatar || null,
+                        },
+                    };
+                } catch {
+                    return { ...project, owner: null };
+                }
+
+            })
+        );
+        
+        return projectsWithOwner;
     }
 
     // get project by ID
