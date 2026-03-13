@@ -2,36 +2,24 @@ import axios from 'axios';
 
 // This is the ONLY place in the whole project 
 // where the Gateway URL is defined.
-const api = axios.create({
-  baseURL: 'https://localhost/api', 
-  withCredentials: true, // Crucial: This tells the browser to send JWT cookies!
-});
+// Use a separate axios instance for refresh requests to avoid interceptor loops
+const refreshApi = axios.create({ baseURL: 'https://localhost/api', withCredentials: true });
+
+const api = axios.create({ baseURL: 'https://localhost/api', withCredentials: true });
 
 api.interceptors.response.use(
-  (response) => response, 
-  async (error) => {
-    const originalRequest = error.config;
-
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-
-      try {
-        const res = await api.post('/auth/refresh');
-        
-        const { accessToken } = res.data;
-
-        localStorage.setItem("access_token", accessToken);
-
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-
-        return api(originalRequest);
-
-      } catch (refreshError) {
-        localStorage.removeItem("access_token");
+  (response) => {
+    return response;
+  },
+  (error) => {
+    console.error('API Error:', error.config?.url, error.response?.status, error.response?.data);
+    if (error.response?.status === 401) {
+      localStorage.removeItem("access_token");
+      const currentPath = window.location.pathname;
+      if (currentPath !== '/login' && currentPath !== '/register') {
         window.location.href = "/login";
       }
     }
-
     return Promise.reject(error);
   }
 );
