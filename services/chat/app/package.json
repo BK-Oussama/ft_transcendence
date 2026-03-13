@@ -13,6 +13,13 @@
     "@nestjs/common": "^11.0.0",
     "@nestjs/core": "^11.0.0",
     "@nestjs/platform-express": "^11.0.0",
+    "@nestjs/websockets": "^11.0.0",
+    "@nestjs/platform-socket.io": "^11.0.0",
+    "socket.io": "^4.7.2",
+    "@nestjs/jwt": "^11.0.0",
+    "@nestjs/passport": "^11.0.0",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
     "@prisma/client": "7.4.0",
     "@prisma/adapter-pg": "7.4.0",
     "pg": "^8.11.0",
@@ -23,8 +30,10 @@
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.0",
+    "@types/passport-jwt": "^4.0.1",
     "prisma": "7.4.0",
     "typescript": "^5.7.0",
     "@types/node": "^22.0.0"
   }
 }
+

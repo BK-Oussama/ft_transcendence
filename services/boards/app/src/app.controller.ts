@@ -3,9 +3,11 @@ import { PrismaService } from './prisma.service';
 import { AppService } from './app.service';
 import { JwtAuthGuard } from './auth/jwt-auth.guard'; 
 
-@Controller('boards') // Added a prefix for clean routing
+@Controller() // Added a prefix for clean routing
 export class AppController {
   constructor(private readonly prisma: PrismaService, private readonly appService: AppService) {}
+  @Get('status')
+  getStatus() { return { status: 'OK' }; }
 
   @Get('health')
   async health() {
@@ -22,4 +24,3 @@ export class AppController {
     return this.appService.getHello();
   }
 }
-

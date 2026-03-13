@@ -13,7 +13,6 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule, { httpsOptions });
 
-  app.setGlobalPrefix('api');
   // 2. Auth Logic: CORS 
   // Note: Since we use an API Gateway, Nginx usually handles CORS. 
   // However, keeping this ensures the service is protected if hit directly.

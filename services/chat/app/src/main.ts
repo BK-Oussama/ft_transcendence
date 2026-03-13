@@ -13,6 +13,8 @@ async function bootstrap() {
 
   // API CONTRACT ENFORCEMENT
   // This ensures only data defined in your DTOs gets through!
+  app.enableCors({ origin: 'http://localhost:5173', credentials: true });
+  
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
 
   app.enableShutdownHooks();
@@ -20,3 +22,5 @@ async function bootstrap() {
   console.log('🚀 Chat Service secure on port 443');
 }
 bootstrap();
+
+

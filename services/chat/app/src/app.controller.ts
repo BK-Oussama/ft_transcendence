@@ -1,7 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
 
-@Controller('chat') // Added a prefix for clean routing
+@Controller() // Added a prefix for clean routing
 export class AppController {
   constructor(private readonly prisma: PrismaService) {}
 

@@ -1,0 +1,8 @@
+instead of down all services, only rebuild and run a specific service.
+
+docker compose up --build <service name>
+
+example: docker compose up --build chat
+
+
+export JWT_UNIT_TESTS="PASTE_TOKEN_HERE"

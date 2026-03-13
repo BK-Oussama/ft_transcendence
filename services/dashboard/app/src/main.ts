@@ -14,7 +14,6 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { httpsOptions });
 
   // remove this
-  // app.setGlobalPrefix('api');
 
   // JUST FOR TESTING THE FRONTEND
   app.enableCors({
