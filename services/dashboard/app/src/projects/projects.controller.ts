@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Headers, Put, Delete, Body, Param, UseGuards, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Headers, Put, Delete, Body, Param, UseGuards, ParseIntPipe, Query } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
@@ -87,5 +87,16 @@ export class ProjectsController {
     @Roles('OWNER')
     async remove(@Param('id', ParseIntPipe) id: number) {
         return this.projectsService.remove(id);
+    }
+
+    // for internal call to the auth service
+    @Get('users/search')
+    @UseGuards(JwtAuthGuard)
+    async searchUsers(
+        @Query('search') search: string,
+        @Headers('authorization') authorization: string,
+    ) {
+        const token = authorization?.replace('Bearer ', '');
+        return this.projectsService.searchUsers(search, token);
     }
 }

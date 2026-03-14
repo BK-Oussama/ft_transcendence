@@ -21,6 +21,25 @@ export class AuthService {
     private readonly cfg: ConfigService,
   ) {}
 
+  async searchUsers(search: string) {
+    return this.prisma.user.findMany({
+      where: {
+        OR: [
+          { firstName: { contains: search, mode: 'insensitive' } },
+          { lastName: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } },
+        ],
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+      },
+      take: 10, // limit to 10 results
+    });
+  }
+
   async getUserById(id: number) {
     const user = await this.prisma.user.findUnique({
       where: { id },

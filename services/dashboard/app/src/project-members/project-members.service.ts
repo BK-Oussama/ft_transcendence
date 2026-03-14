@@ -45,32 +45,44 @@ export class ProjectMembersService {
     // get all members of a project
     async findAll(projectId: number, token: string) {
         const members = await this.prisma.projectMember.findMany({
-            where: { projectId: projectId },
+            where: { projectId },
         });
-    
-        // get all user ids
-        const userIds = members.map((m) => m.userId);
 
-        // call Auth Service for each user
-        // TODO: replace URL with your teammate's actual endpoint
         const users = await Promise.all(
-            userIds.map(async (id) => {
+            members.map(async (member) => {
+            try {
                 const { data } = await firstValueFrom(
-                    this.httpService.get<any>(`https://auth/api/auth/users/${id}`, {
-                        headers: {
-                            Authorization: `Bearer ${token}`, // forward the token
-                        },
-                    })
+                this.httpService.get<any>(`https://auth/api/auth/users/${member.userId}`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                })
                 );
                 return data;
+            } catch {
+                // fallback if auth service fails
+                return {
+                id: member.userId,
+                name: `User ${member.userId}`,
+                email: `user${member.userId}@temp.com`,
+                avatar: null,
+                };
+            }
             })
         );
 
-        return members.map((member) => ({
-            userId: member.userId,
-            role: member.role,
-            user: users.find((u) => u.id === member.userId),
-        }));
+        return members.map((member) => {
+            const user = users.find((u) => u.id === member.userId);
+            return {
+                userId: member.userId,
+                role: member.role,
+                joinedAt: member.joinedAt,
+                user: user ? {
+                id: user.id,
+                name: `${user.firstName} ${user.lastName}`,
+                email: user.email,
+                avatar: user.avatar || null,
+                } : null,
+            };
+        });
     }
 
     // update member role

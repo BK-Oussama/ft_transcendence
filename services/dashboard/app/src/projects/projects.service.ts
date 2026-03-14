@@ -5,7 +5,6 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 import { firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 
-
 @Injectable()
 export class ProjectsService {
     constructor(
@@ -130,9 +129,18 @@ export class ProjectsService {
         // check if project exists
         await this.findOne(projectId);
 
+
         return this.prisma.project.update({
             where: { id: projectId },
-            data: updateProjectDto,
+            data: {
+            ...updateProjectDto,
+            dueDate: updateProjectDto.dueDate
+                ? new Date(updateProjectDto.dueDate)
+                : undefined,
+            startDate: updateProjectDto.startDate
+                ? new Date(updateProjectDto.startDate)
+                : undefined,
+            },
         });
     }
 
@@ -144,5 +152,19 @@ export class ProjectsService {
         return this.prisma.project.delete({
             where: { id: projectId },
         });
+    }
+
+    async searchUsers(search: string, token: string) {
+        const { data } = await firstValueFrom(
+            this.httpService.get<any>(`https://auth/api/auth/users/search?search=${search}`, {
+            headers: { Authorization: `Bearer ${token}` },
+            })
+        );
+        return data.map((user: any) => ({
+            id: user.id,
+            name: `${user.firstName} ${user.lastName}`,
+            email: user.email,
+            avatar: user.avatar || null,
+        }));
     }
 }

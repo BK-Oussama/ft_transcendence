@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   UseGuards,
   UnauthorizedException,
+  Query,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { CreateUserDto } from './dto/register.dto';
@@ -64,6 +65,12 @@ export class AuthController {
   me(@Req() req: Request)
   {
     return this.authService.getUserById((req.user as any).id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('users/search')
+  searchUsers(@Query('search') search: string) {
+    return this.authService.searchUsers(search);
   }
 
   @UseGuards(JwtAuthGuard)
