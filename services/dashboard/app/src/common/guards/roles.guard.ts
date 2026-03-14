@@ -22,7 +22,8 @@ export class RolesGuard implements CanActivate {
             return true;
 
         const request = context.switchToHttp().getRequest();
-        const userId = Number(request.headers['user-id']);
+        // const userId = Number(request.headers['user-id']);
+        const userId = request.user?.id;
         const projectId = Number(request.params['id']) || Number(request.params['projectId']);
 
         if (!userId || isNaN(userId))
