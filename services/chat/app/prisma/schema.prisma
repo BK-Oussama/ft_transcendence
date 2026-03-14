@@ -1,17 +1,32 @@
 generator client {
-  provider        = "prisma-client-js" // Add the "-js" suffix
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
   provider = "postgresql"
+  schemas  = ["public"] 
+  // URL is intentionally omitted here; it is handled by prisma.config.mjs
 }
 
-// Minimal starter table for the Chat developer
 model Message {
+  id         Int      @id @default(autoincrement())
+  content    String
+  senderId   Int      
+  senderName String   
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@schema("public")
+}
+
+model Relationship {
   id        Int      @id @default(autoincrement())
-  content   String
-  senderId  Int      // Logical link to Auth User
-  roomId    Int      // Logical link to Board/Room
+  userId    Int      
+  friendId  Int      
+  status    String   @default("FRIEND") 
   createdAt DateTime @default(now())
+
+  @@unique([userId, friendId])
+  @@schema("public")
 }

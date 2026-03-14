@@ -26,43 +26,6 @@ export class ProjectsController {
     constructor(
         private readonly projectsService: ProjectsService) {}
 
-    // /**
-    //  * INFRASTRUCTURE TEST ROUTE
-    //  * URL: GET https://localhost/api/dashboard/status
-    //  */
-    // @Get('status')
-    // getStatus() {
-    //     return {
-    //         status: 'OK',
-    //         message: 'Infrastructure handshake successful.',
-    //         container: 'dashboard-service',
-    //         port: 443,
-    //         timestamp: new Date().toISOString(),
-    //     };
-    // }
-
-    // /**
-    //  * DATABASE HEALTH CHECK
-    //  * URL: GET https://localhost/api/dashboard/health
-    //  */
-    // @Get('health')
-    // async health() {
-    //    return this.projectsService.health();
-    // }
-
-
-    // remove this, it cause conflict
-    /**
-     * ROOT HELLO ROUTE
-     * URL: GET https://localhost/api/auth
-     */
-    // @Get()
-    // getHello(): string {
-    //     return this.projectsService.getHello();
-    // }
-
-    // --- EXISTING PROJECT LOGIC BELOW ---
-
     @Post()
     create(@Body() createProjectDto: CreateProjectDto, @CurrentUser() userId: number) {
         return this.projectsService.create(createProjectDto, userId);
