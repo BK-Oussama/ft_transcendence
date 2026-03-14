@@ -16,10 +16,26 @@ import * as argon2 from 'argon2';
 
 @Injectable()
 export class AuthService {
+<<<<<<< Updated upstream
 
 	constructor(private readonly prisma: PrismaService,
 		private readonly jwt : JwtService,
 		private readonly cfg: ConfigService) {}
+=======
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly jwt: JwtService,
+    private readonly cfg: ConfigService,
+  ) { }
+
+  async getUserById(id: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: { id: true, email: true, firstName: true, lastName: true, bio: true, jobTitle: true, avatarUrl: true },
+    });
+    return user;
+  }
+>>>>>>> Stashed changes
 
 	// register user
 
@@ -65,6 +81,7 @@ export class AuthService {
 	// login user
 
 
+<<<<<<< Updated upstream
 	async refresh(refreshToken: string, res: Response)
 	{
 		let payload: { sub: number };
@@ -77,6 +94,17 @@ export class AuthService {
 		{
 			throw new UnauthorizedException('Invalid refresh token');
   		}
+=======
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      // Change to true since you are using HTTPS in your Docker setup!
+      secure: true,
+      sameSite: 'lax',
+      // Change this to '/' so it's visible to the Gateway
+      path: '/',
+      maxAge: this.getRefreshMaxAgeMs(),
+    });
+>>>>>>> Stashed changes
 
 		const user = await this.prisma.user.findUnique(
 		{
