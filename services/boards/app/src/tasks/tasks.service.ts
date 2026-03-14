@@ -10,21 +10,22 @@ export class TasksService {
 
   constructor(private tasksGateway: TasksGateway) {}
 
-  findAll() {
+  findAll(projectId: number) {
     return this.prisma.task.findMany({
+      where: { project_id: projectId },
       orderBy: [{ position: 'asc' }, { id: 'asc' }],
     });
   }
 
-  async create(createTaskDto: CreateTaskDto & { attachment_url?: string }) {
+  async create(createTaskDto: CreateTaskDto & { attachment_url?: string }, userId: number) {
     const task = await this.prisma.task.create({
       data: {
         title: createTaskDto.title,
         description: createTaskDto.description || '',
         status: createTaskDto.status,
         priority: createTaskDto.priority || 'Medium',
-        project_id: createTaskDto.projectId || 1,
-        created_by: createTaskDto.createdBy || 1,
+        project_id: createTaskDto.projectId,
+        created_by: userId,
         position: 0,
         assigned_to: createTaskDto.assignedTo || null,
         start_date: createTaskDto.startDate

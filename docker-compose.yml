@@ -144,7 +144,7 @@ services:
       timeout: 5s
       retries: 5
     volumes:
-      - ./databases/chat_db:/var/lib/postgresql/data
+      - ${HOME}/ft_dbs/chat_db:/var/lib/postgresql/data
 
     networks:
       - transcendence-net
@@ -182,7 +182,7 @@ services:
       timeout: 5s
       retries: 5
     volumes:
-      - ./databases/dashboard_db:/var/lib/postgresql/data
+      - ${HOME}/ft_dbs/dashboard_db:/var/lib/postgresql/data
 
     networks:
       - transcendence-net

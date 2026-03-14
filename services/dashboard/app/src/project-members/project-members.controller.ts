@@ -5,8 +5,10 @@ import { UpdateMemberRoleDto } from './dto/update-member-role.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 
 @Controller('api/projects/:projectId/members')
+@UseGuards(JwtAuthGuard) 
 export class ProjectMembersController {
     constructor(private readonly projectMemberService: ProjectMembersService) {}
 
@@ -22,8 +24,12 @@ export class ProjectMembersController {
     }
 
     @Get()
-    findAll(@Param('projectId', ParseIntPipe) projectId: number) {
-        return this.projectMemberService.findAll(projectId);
+    findAll(
+        @Param('projectId', ParseIntPipe) projectId: number, 
+        @Headers('authorization') authorization: string,
+    ) {
+        const token = authorization?.replace('Bearer ', '');
+        return this.projectMemberService.findAll(projectId, token);
     }
 
     @Put(':userId')

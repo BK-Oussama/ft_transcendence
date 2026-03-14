@@ -35,6 +35,7 @@ clean:
 # Fclean: The "Nuclear" option - removes everything + docker cache + local volumes
 fclean: clean
 	$(COMPOSE) down --volumes --remove-orphans
+	@sudo rm -rf $(HOME)/ft_dbs/
 	@echo "🧹 Pruning Docker builder cache..."
 	@docker builder prune -af
 	@echo "✨ System is deep-cleaned."
