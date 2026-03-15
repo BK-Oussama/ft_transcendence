@@ -4,6 +4,7 @@ import Home from './features/home/Home';
 import BoardPage from './features/boards/KanbanBoardPage'; // Import your Board UI
 import { RegisterPage } from './features/auth/pages/RegisterPage'; // Updated paths
 import { LoginPage } from './features/auth/pages/LoginPage'; // Updated paths
+import { SettingsPage } from './features/settings/pages/SettingsPage';
 import OAuthSuccess from './features/auth/OAuthSuccess';
 import { ProtectedRoute } from './features/auth/ProtectedRoute';
 import MainLayout from './components/layout/MainLayout';
@@ -24,10 +25,12 @@ export default function App() {
           {/* 2. PROTECTED ZONE - Wraps everything in Sidebar + Auth Check */}
           <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
             <Route path="/dashboard" element={<div>Welcome to Dashboard</div>} />
-            
+
             {/* THIS IS THE MISSING LINK! */}
             <Route path="/boards" element={<BoardPage />} />
-            
+
+            <Route path="/settings" element={<SettingsPage />} />
+
             {/* Future Chat Route */}
             <Route path="/chat" element={<div>Chat Coming Soon</div>} />
           </Route>
@@ -40,4 +43,3 @@ export default function App() {
   );
 }
 
- 
