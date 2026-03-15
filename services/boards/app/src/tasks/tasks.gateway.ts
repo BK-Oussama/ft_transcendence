@@ -7,7 +7,15 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Task } from '@prisma/client';
 
-@WebSocketGateway({ cors: { origin: '*' } })
+
+
+@WebSocketGateway({
+  path: '/socket.io', 
+  namespace: 'boards', 
+  cors: { origin: 'http://localhost:5173', credentials: true }
+})
+
+
 export class TasksGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;

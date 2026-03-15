@@ -14,7 +14,7 @@ RUN mkdir -p /app/secrets && \
 
 # Copy dependency files first for caching
 COPY app/package*.json ./
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 
 COPY app/.env ./           

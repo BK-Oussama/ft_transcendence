@@ -7,11 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 
 @Module({
-<<<<<<< Updated upstream
-  imports: [PrismaModule, AuthModule, ConfigModule.forRoot({ isGlobal: true })] ,
-=======
   imports: [PrismaModule, AuthModule, ConfigModule.forRoot({ isGlobal: true }), UsersModule],
->>>>>>> Stashed changes
   controllers: [AppController],
   providers: [AppService],
 })
