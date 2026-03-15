@@ -118,4 +118,14 @@ export class TasksService {
       throw error;
     }
   }
+
+  /////////////////////////////////////////////////////////
+  // added by the dashboard service
+  // for my task page
+  findMyTasks(userId: number) {
+    return this.prisma.task.findMany({
+      where: { assigned_to: userId },
+      orderBy: [{ due_date: 'asc' }, { id: 'asc' }],
+    });
+  }
 }

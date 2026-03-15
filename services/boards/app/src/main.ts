@@ -23,8 +23,14 @@ async function bootstrap() {
     })
   );
 
+  // remove this after testing
+  app.enableCors({
+    origin: 'http://localhost:5173',
+    credentials: true,
+  });
+
   app.enableShutdownHooks();
-  app.enableCors();
+  // app.enableCors(); uncomment this when im finished with my task page
   await app.listen(process.env.PORT ?? 443);
   console.log('🚀 Dashboard Service secure on port 443');
 }
