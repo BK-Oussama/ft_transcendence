@@ -43,7 +43,10 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.* ./
 COPY --from=builder /app/package*.json ./
 
-CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node dist/main"]
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node dist/src/main"]
+
+# CMD ["sh", "-c", "npx prisma db push --accept-data-loss && (node dist/main || node dist/src/main)"]
+# CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node dist/main"]
 
 # CMD ["sh", "-c", "npx prisma db push && node dist/main"]/
 # CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]

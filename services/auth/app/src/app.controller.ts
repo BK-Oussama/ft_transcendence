@@ -2,7 +2,7 @@ import { Controller, Get } from '@nestjs/common';
 import { PrismaService } from './prisma/prisma.service';
 import { AppService } from './app.service';
 
-@Controller()
+@Controller() // Matches your Gateway pathing (/api/auth/...)
 export class AppController {
   constructor(private readonly prisma: PrismaService, private readonly appService: AppService) {}
 

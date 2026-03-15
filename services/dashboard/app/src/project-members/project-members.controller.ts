@@ -7,7 +7,7 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 
-@Controller('api/projects/:projectId/members')
+@Controller('projects/:projectId/members')
 @UseGuards(JwtAuthGuard) 
 export class ProjectMembersController {
     constructor(private readonly projectMemberService: ProjectMembersService) {}
@@ -57,7 +57,7 @@ export class ProjectMembersController {
 }
 
 // add permission check endpoint
-@Controller('api/projects/:projectId/permission')
+@Controller('projects/:projectId/permission')
 export class ProjectPermissionsController {
     constructor(private readonly projectMemberService: ProjectMembersService) {}
 
