@@ -5,6 +5,7 @@ import { ProjectsModule } from './projects/projects.module';
 import { ProjectMembersModule } from './project-members/project-members.module';
 import { JwtStrategy } from './common/strategies/jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
+import { InfrastructureController } from './projects/projects.controller'; 
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { PassportModule } from '@nestjs/passport';
     ProjectsModule,
     ProjectMembersModule,
   ],
-  controllers: [],
+  controllers: [InfrastructureController],
   providers: [JwtStrategy],
 })
 export class AppModule {}

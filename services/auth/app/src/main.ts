@@ -5,6 +5,13 @@ import * as fs from 'fs';
 import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
+  // 0. Ensure uploads directory exists
+  const uploadDir = './uploads/avatars';
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+    console.log('📁 Created uploads directory');
+  }
+
   // 1. SSL Setup (Required for our Internal HTTPS)
   const httpsOptions = {
     key: fs.readFileSync('./secrets/privkey.pem'),
@@ -13,7 +20,6 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule, { httpsOptions });
 
-  app.setGlobalPrefix('api');
   // 2. Auth Logic: CORS 
   // Note: Since we use an API Gateway, Nginx usually handles CORS. 
   // However, keeping this ensures the service is protected if hit directly.
@@ -29,10 +35,10 @@ async function bootstrap() {
 
   // 4. API Contract & Data Transformation
   // 'transform: true' is vital for Auth DTOs to convert plain objects to class instances
-  app.useGlobalPipes(new ValidationPipe({ 
-    whitelist: true, 
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true,
     forbidNonWhitelisted: true,
-    transform: true 
+    transform: true
   }));
 
   app.enableShutdownHooks();

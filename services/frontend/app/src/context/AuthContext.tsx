@@ -79,12 +79,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
+  const updateUser = useCallback((updatedUser: Partial<User>) => {
+    setUser((prev) => (prev ? { ...prev, ...updatedUser } : null));
+  }, []);
+
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAuthenticated, login, register, logout, checkAuth, loginWithGoogle }}>
+    <AuthContext.Provider value={{ user, loading, isAuthenticated, login, register, logout, checkAuth, loginWithGoogle, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

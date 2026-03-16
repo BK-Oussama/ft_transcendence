@@ -7,50 +7,24 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 
-@Controller('api/projects')
+
+@Controller() // REMOVE 'dashboard' so it catches root paths after Nginx stripping
+export class InfrastructureController {
+    @Get('status')
+    getStatus() { return { status: 'OK' }; }
+
+    @Get('health')
+    async health() { return { database: 'ok' }; }
+}
+
+
+@Controller('projects')
 @UseGuards(JwtAuthGuard) 
 export class ProjectsController {
     // Inject both the ProjectsService and PrismaService
     // NOTE: you should not injectt prismaService here (i only inject it in the service)
     constructor(
         private readonly projectsService: ProjectsService) {}
-
-    /**
-     * INFRASTRUCTURE TEST ROUTE
-     * URL: GET https://localhost/api/dashboard/status
-     */
-    @Get('status')
-    getStatus() {
-        return {
-            status: 'OK',
-            message: 'Infrastructure handshake successful.',
-            container: 'dashboard-service',
-            port: 443,
-            timestamp: new Date().toISOString(),
-        };
-    }
-
-    /**
-     * DATABASE HEALTH CHECK
-     * URL: GET https://localhost/api/dashboard/health
-     */
-    @Get('health')
-    async health() {
-       return this.projectsService.health();
-    }
-
-
-    // remove this, it cause conflict
-    /**
-     * ROOT HELLO ROUTE
-     * URL: GET https://localhost/api/auth
-     */
-    // @Get()
-    // getHello(): string {
-    //     return this.projectsService.getHello();
-    // }
-
-    // --- EXISTING PROJECT LOGIC BELOW ---
 
     @Post()
     create(@Body() createProjectDto: CreateProjectDto, @CurrentUser() userId: number) {

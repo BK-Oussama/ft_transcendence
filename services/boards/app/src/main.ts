@@ -11,7 +11,7 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule, { httpsOptions });
 
-  app.setGlobalPrefix('api');
+  // app.setGlobalPrefix('api');
 
   // API CONTRACT ENFORCEMENT
   // This ensures only data defined in your DTOs gets through!

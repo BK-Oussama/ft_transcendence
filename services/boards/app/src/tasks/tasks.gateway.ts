@@ -7,7 +7,18 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Task } from '@prisma/client';
 
+
 // @WebSocketGateway({ cors: { origin: '*' } })
+
+
+
+// removed this only to be able to merge, if it cause any problem i will remove it
+// @WebSocketGateway({
+//   path: '/socket.io', 
+//   namespace: 'boards', 
+//   cors: { origin: 'http://localhost:5173', credentials: true }
+// })
+
 
 // just to test, remove when finished
 @WebSocketGateway({ 
