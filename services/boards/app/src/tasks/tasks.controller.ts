@@ -21,6 +21,7 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { TaskStatus } from './dto/task-status.enum';
 
 @Controller('tasks')
 @UseGuards(JwtAuthGuard)
@@ -30,10 +31,28 @@ export class TasksController {
     private readonly tasksGateway: TasksGateway,
   ) {}
 
+  /////////////////////////////////////////////
+  // added by the dashboard service
+  @Get('my-tasks')
+  async findMyTasks(@Req() req: any) {
+    return this.tasksService.findMyTasks(req.user.id);
+  }
+
   @Get()
   async findAll(@Query('projectId', ParseIntPipe) projectId: number) {
     return await this.tasksService.findAll(projectId);
   }
+
+  // added by dashboard
+  @Patch(':id/status')
+  async updateStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { status: string },
+  ) {
+    return this.tasksService.update(id, { status: body.status as TaskStatus });
+  }
+  ///////////////////////////////////////////////
+
 
   @Post()
   @UseInterceptors(

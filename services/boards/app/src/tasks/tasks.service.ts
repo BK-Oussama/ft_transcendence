@@ -48,7 +48,7 @@ export class TasksService {
     updateTaskDto: UpdateTaskDto & { attachmentUrl?: string },
   ) {
     try {
-      const { assignedTo, startDate, dueDate, attachmentUrl, ...rest } =
+      const { assignedTo, startDate, dueDate, attachmentUrl, projectId, ...rest } =
         updateTaskDto;
       const dataToUpdate: any = { ...rest };
 
@@ -117,5 +117,15 @@ export class TasksService {
       }
       throw error;
     }
+  }
+
+  /////////////////////////////////////////////////////////
+  // added by the dashboard service
+  // for my task page
+  findMyTasks(userId: number) {
+    return this.prisma.task.findMany({
+      where: { assigned_to: userId },
+      orderBy: [{ due_date: 'asc' }, { id: 'asc' }],
+    });
   }
 }
