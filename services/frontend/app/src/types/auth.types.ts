@@ -20,6 +20,9 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
+  bio: string;
+  jobTitle: string;
+  avatarUrl: string;
 }
 
 export interface AuthContextType {
@@ -31,4 +34,5 @@ export interface AuthContextType {
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
   loginWithGoogle: (token: string) => Promise<void>;
+  updateUser: (updatedUser: Partial<User>) => void;
 }
