@@ -1,38 +1,43 @@
 import React, { useState } from 'react';
 import { updatePasswordApi } from '../../../api/users.api';
+import openEyeIcon from '../../../icons/openeye.png';
+import closedEyeIcon from '../../../icons/closedeye.png';
 
-type Strength = { label: string; color: string; width: string };
+// type Strength = { label: string; color: string; width: string };
 
-const getStrength = (pwd: string): Strength => {
-    if (!pwd) return { label: '', color: '#e5e7eb', width: '0%' };
-    let score = 0;
-    if (pwd.length >= 6)  score++;
-    if (pwd.length >= 10) score++;
-    if (/[A-Z]/.test(pwd) && /[0-9]/.test(pwd)) score++;
-    if (/[^A-Za-z0-9]/.test(pwd)) score++;
-    const map: Strength[] = [
-        { label: '',       color: '#e5e7eb', width: '0%'   },
-        { label: 'Weak',   color: '#ef4444', width: '25%'  },
-        { label: 'Fair',   color: '#f59e0b', width: '50%'  },
-        { label: 'Good',   color: '#10b981', width: '75%'  },
-        { label: 'Strong', color: '#059669', width: '100%' },
-    ];
-    return map[score] ?? map[0];
-};
+// const getStrength = (pwd: string): Strength => {
+//     if (!pwd) return { label: '', color: '#e5e7eb', width: '0%' };
+//     let score = 0;
+//     if (pwd.length >= 6) score++;
+//     if (pwd.length >= 10) score++;
+//     if (/[A-Z]/.test(pwd) && /[0-9]/.test(pwd)) score++;
+//     if (/[^A-Za-z0-9]/.test(pwd)) score++;
+//     const map: Strength[] = [
+//         { label: '', color: '#e5e7eb', width: '0%' },
+//         { label: 'Weak', color: '#ef4444', width: '25%' },
+//         { label: 'Fair', color: '#f59e0b', width: '50%' },
+//         { label: 'Good', color: '#10b981', width: '75%' },
+//         { label: 'Strong', color: '#059669', width: '100%' },
+//     ];
+//     return map[score] ?? map[0];
+// };
 
 export const PasswordSettingsForm = () => {
+    const [currentPassword, setCurrentPassword] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [showCurrent, setShowCurrent] = useState(false);
     const [showPwd, setShowPwd] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
-    const strength = getStrength(password);
+    // const strength = getStrength(password);
 
     const validate = () => {
         const errs: Record<string, string> = {};
+        if (!currentPassword) errs.currentPassword = 'Current password is required';
         if (password.length < 6) errs.password = 'Minimum 6 characters required';
         if (password !== confirmPassword) errs.confirm = 'Passwords do not match';
         return errs;
@@ -47,7 +52,8 @@ export const PasswordSettingsForm = () => {
         setMessage({ type: '', text: '' });
 
         try {
-            await updatePasswordApi({ password });
+            await updatePasswordApi({ password, currentPassword });
+            setCurrentPassword('');
             setPassword('');
             setConfirmPassword('');
             setMessage({ type: 'success', text: 'Password updated successfully!' });
@@ -68,6 +74,26 @@ export const PasswordSettingsForm = () => {
             )}
 
             <form onSubmit={handleSubmit} noValidate>
+                {/* Current Password */}
+                <div className="sf-field">
+                    <label htmlFor="sf-currentPassword" className="sf-label">Current Password</label>
+                    <div className="sf-input-wrap">
+                        <input
+                            id="sf-currentPassword"
+                            type={showCurrent ? 'text' : 'password'}
+                            value={currentPassword}
+                            onChange={e => { setCurrentPassword(e.target.value); setErrors(prev => ({ ...prev, currentPassword: '' })); }}
+                            className={`sf-input sf-input-padded${errors.currentPassword ? ' sf-input--error' : ''}`}
+                            placeholder="Enter your current password"
+                            autoComplete="current-password"
+                        />
+                        <button type="button" className="sf-eye-btn" onClick={() => setShowCurrent(v => !v)} aria-label="Toggle current password visibility">
+                            <img src={showCurrent ? closedEyeIcon : openEyeIcon} alt="toggle" className="sf-eye-icon" />
+                        </button>
+                    </div>
+                    {errors.currentPassword && <span className="sf-field-error">{errors.currentPassword}</span>}
+                </div>
+
                 {/* New Password */}
                 <div className="sf-field">
                     <label htmlFor="sf-newPassword" className="sf-label">New Password</label>
@@ -82,20 +108,9 @@ export const PasswordSettingsForm = () => {
                             autoComplete="new-password"
                         />
                         <button type="button" className="sf-eye-btn" onClick={() => setShowPwd(v => !v)} aria-label="Toggle password visibility">
-                            {showPwd ? '🙈' : '👁️'}
+                            <img src={showPwd ? closedEyeIcon : openEyeIcon} alt="toggle" className="sf-eye-icon" />
                         </button>
                     </div>
-                    {/* Strength bar */}
-                    {password.length > 0 && (
-                        <div className="sf-strength-wrap">
-                            <div className="sf-strength-track">
-                                <div className="sf-strength-fill" style={{ width: strength.width, background: strength.color }} />
-                            </div>
-                            {strength.label && (
-                                <span className="sf-strength-label" style={{ color: strength.color }}>{strength.label}</span>
-                            )}
-                        </div>
-                    )}
                     {errors.password && <span className="sf-field-error">{errors.password}</span>}
                 </div>
 
@@ -113,7 +128,7 @@ export const PasswordSettingsForm = () => {
                             autoComplete="new-password"
                         />
                         <button type="button" className="sf-eye-btn" onClick={() => setShowConfirm(v => !v)} aria-label="Toggle confirm password visibility">
-                            {showConfirm ? '🙈' : '👁️'}
+                            <img src={showConfirm ? closedEyeIcon : openEyeIcon} alt="toggle" className="sf-eye-icon" />
                         </button>
                     </div>
                     {errors.confirm && <span className="sf-field-error">{errors.confirm}</span>}
@@ -124,7 +139,7 @@ export const PasswordSettingsForm = () => {
                         {loading ? 'Updating...' : 'Update Password'}
                     </button>
                     <button type="button" className="sf-btn-secondary" onClick={() => {
-                        setPassword(''); setConfirmPassword(''); setErrors({});
+                        setCurrentPassword(''); setPassword(''); setConfirmPassword(''); setErrors({});
                     }}>
                         Cancel
                     </button>
@@ -170,7 +185,10 @@ const SHARED_STYLES = `
     position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
     background: none; border: none; cursor: pointer; font-size: 14px; padding: 2px;
     color: #9ca3af; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
 }
+.sf-eye-icon { width: 18px; height: 18px; opacity: 0.6; transition: opacity 0.15s; }
+.sf-eye-btn:hover .sf-eye-icon { opacity: 1; }
 .sf-eye-btn:hover { color: #374151; }
 .sf-strength-wrap { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
 .sf-strength-track { flex: 1; height: 4px; background: #e5e7eb; border-radius: 2px; overflow: hidden; }

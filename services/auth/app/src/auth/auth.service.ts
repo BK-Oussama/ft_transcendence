@@ -19,7 +19,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
     private readonly cfg: ConfigService,
-  ) {}
+  ) { }
 
   async searchUsers(search: string) {
     return this.prisma.user.findMany({
@@ -58,7 +58,7 @@ export class AuthService {
     try {
       return await this.prisma.user.create({
         data: userData,
-        select: { id: true, email: true, firstName: true, lastName: true },
+        select: { id: true, email: true, firstName: true, lastName: true, avatarUrl: true },
       });
     } catch (err: any) {
       if (err?.code === 'P2002') {
@@ -75,6 +75,7 @@ export class AuthService {
       passwordHash: hashedPassword,
       firstName: dto.firstname,
       lastName: dto.lastname,
+      avatarUrl: "/api/auth/uploads/avatars/default.jpg",
     };
     return this.saveNewUser(newUserData);
   }
@@ -141,14 +142,14 @@ export class AuthService {
 
 
     res.cookie('refreshToken', refreshToken, {
-  httpOnly: true, 
-  // Change to true since you are using HTTPS in your Docker setup!
-  secure: true, 
-  sameSite: 'lax',
-  // Change this to '/' so it's visible to the Gateway
-  path: '/', 
-  maxAge: this.getRefreshMaxAgeMs(),
-});
+      httpOnly: true,
+      // Change to true since you are using HTTPS in your Docker setup!
+      secure: true,
+      sameSite: 'lax',
+      // Change this to '/' so it's visible to the Gateway
+      path: '/',
+      maxAge: this.getRefreshMaxAgeMs(),
+    });
 
     const hashedToken = await argon2.hash(refreshToken);
 

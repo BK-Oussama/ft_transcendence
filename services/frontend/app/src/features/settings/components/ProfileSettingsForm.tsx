@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useAuth } from '../../../hooks/useAuth';
-import { updateProfileApi } from '../../../api/users.api';
+import { updateProfileApi, uploadAvatarApi } from '../../../api/users.api';
 
 export const ProfileSettingsForm = () => {
     const { user, updateUser } = useAuth();
@@ -9,7 +9,6 @@ export const ProfileSettingsForm = () => {
     const [lastName, setLastName] = useState(user?.lastName || '');
     const [jobTitle, setJobTitle] = useState(user?.jobTitle || '');
     const [bio, setBio] = useState(user?.bio || '');
-    const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl || '');
     const [avatarPreview, setAvatarPreview] = useState(user?.avatarUrl || '');
     const [message, setMessage] = useState({ type: '', text: '' });
     const [loading, setLoading] = useState(false);
@@ -30,20 +29,33 @@ export const ProfileSettingsForm = () => {
         if (lastName.trim().length > 50) errs.lastName = 'Maximum 50 characters';
         if (bio.length > 200) errs.bio = 'Maximum 200 characters';
         if (jobTitle.length > 100) errs.jobTitle = 'Maximum 100 characters';
-        if (avatarUrl && !/^https?:\/\/.+/.test(avatarUrl)) errs.avatarUrl = 'Must be a valid URL';
-        if (avatarUrl.length > 500) errs.avatarUrl = 'Maximum 500 characters';
         return errs;
     };
 
-    const handleAvatarFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
+
+        // Preview local
         const reader = new FileReader();
         reader.onload = (ev) => {
             const result = ev.target?.result as string;
             setAvatarPreview(result);
         };
         reader.readAsDataURL(file);
+
+        // Upload to server
+        try {
+            setLoading(true);
+            const { avatarUrl: newUrl } = await uploadAvatarApi(file);
+            updateUser({ avatarUrl: newUrl });
+            setMessage({ type: 'success', text: 'Avatar uploaded successfully!' });
+            setTimeout(() => setMessage({ type: '', text: '' }), 4000);
+        } catch (err: any) {
+            setMessage({ type: 'error', text: 'Failed to upload avatar' });
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -58,8 +70,8 @@ export const ProfileSettingsForm = () => {
         setMessage({ type: '', text: '' });
 
         try {
-            await updateProfileApi({ firstName, lastName, jobTitle, bio, avatarUrl });
-            updateUser({ firstName, lastName, jobTitle, bio, avatarUrl });
+            const updatedUser = await updateProfileApi({ firstName, lastName, jobTitle, bio });
+            updateUser(updatedUser);
             setMessage({ type: 'success', text: 'Profile updated successfully!' });
             setTimeout(() => setMessage({ type: '', text: '' }), 4000);
         } catch (err: any) {
@@ -97,7 +109,7 @@ export const ProfileSettingsForm = () => {
                     <button type="button" className="sf-link-btn" onClick={() => fileInputRef.current?.click()}>
                         Change Picture
                     </button>
-                    <p className="sf-hint">Or provide a URL below. JPG, PNG up to 5MB.</p>
+                    <p className="sf-hint">JPG, PNG up to 5MB.</p>
                 </div>
             </div>
 
@@ -162,19 +174,6 @@ export const ProfileSettingsForm = () => {
                     {errors.bio && <span className="sf-field-error">{errors.bio}</span>}
                 </div>
 
-                <div className="sf-field">
-                    <label htmlFor="sf-avatarUrl" className="sf-label">Avatar URL</label>
-                    <input
-                        id="sf-avatarUrl"
-                        type="url"
-                        value={avatarUrl}
-                        onChange={e => { setAvatarUrl(e.target.value); setAvatarPreview(e.target.value); }}
-                        className={`sf-input${errors.avatarUrl ? ' sf-input--error' : ''}`}
-                        placeholder="https://example.com/avatar.jpg"
-                        maxLength={500}
-                    />
-                    {errors.avatarUrl && <span className="sf-field-error">{errors.avatarUrl}</span>}
-                </div>
 
                 <div className="sf-footer">
                     <button type="submit" disabled={loading} className="sf-btn-primary">
@@ -185,7 +184,6 @@ export const ProfileSettingsForm = () => {
                         setLastName(user?.lastName || '');
                         setJobTitle(user?.jobTitle || '');
                         setBio(user?.bio || '');
-                        setAvatarUrl(user?.avatarUrl || '');
                         setAvatarPreview(user?.avatarUrl || '');
                         setErrors({});
                     }}>
