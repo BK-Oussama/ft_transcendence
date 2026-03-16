@@ -48,7 +48,7 @@ export class TasksService {
     updateTaskDto: UpdateTaskDto & { attachmentUrl?: string },
   ) {
     try {
-      const { assignedTo, startDate, dueDate, attachmentUrl, ...rest } =
+      const { assignedTo, startDate, dueDate, attachmentUrl, projectId, ...rest } =
         updateTaskDto;
       const dataToUpdate: any = { ...rest };
 
