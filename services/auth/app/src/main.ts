@@ -23,12 +23,16 @@ async function bootstrap() {
   // 2. Auth Logic: CORS 
   // Note: Since we use an API Gateway, Nginx usually handles CORS. 
   // However, keeping this ensures the service is protected if hit directly.
-  app.enableCors({
-    origin: true, // Allows the Gateway to communicate
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  });
+  
+  // comment just for testing
+  // app.enableCors({
+  //   origin: true, // Allows the Gateway to communicate
+  //   credentials: true,
+  //   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  //   allowedHeaders: ['Content-Type', 'Authorization'],
+  // });
+
+
 
   // 3. Auth Logic: Cookies (Required for JWT storage)
   app.use(cookieParser());
