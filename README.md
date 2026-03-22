@@ -28,23 +28,6 @@ The users.ts file is a perfect "Mock" for now, but as you scale, we’ll eventua
 
 
 
-Internal Readme: Frontend Integration Guide
-
-    🚀 How to Add Your Feature
-
-        Folder Structure: Create your service folder under src/features/[your-feature].
-
-        State Safety: Always use if (!Array.isArray(data)) checks before mapping/filtering API results to prevent "White Screen" crashes.
-
-        API Calls: Never use raw axios. Import the shared client: import api from '@/api/client'.
-
-        Routing: Add your route to src/App.tsx. Use the MainLayout if you want the shared Sidebar/Navbar.
-
-        Styles: Use Tailwind classes. If you add new folders, ensure tailwind.config.js is updated to scan them.
-
-        Environment: The Gateway is at https://localhost/api. Avoid hardcoding localhost:3000 ports.
-        
-
 # TESTING AUTH with backend services:
 
 - Create the User (If you haven't yet):

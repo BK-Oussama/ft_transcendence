@@ -21,7 +21,3 @@ curl -k -i -X POST https://localhost/api/auth/register \
      }'
 
 
-
-
-A script cannot change the environment of your current terminal unless you "source" the output. Run this immediately after:
-- source .env_token

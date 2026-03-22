@@ -8,6 +8,7 @@ import { SettingsPage } from './features/settings/pages/SettingsPage';
 import OAuthSuccess from './features/auth/OAuthSuccess';
 import { ProtectedRoute } from './features/auth/ProtectedRoute';
 import MainLayout from './components/layout/MainLayout';
+import ChatPage from './features/chat/pages/ChatPage'; // Adjust path if needed
 
 import { AuthProvider } from './context/AuthContext';
 
@@ -32,7 +33,11 @@ export default function App() {
             <Route path="/settings" element={<SettingsPage />} />
 
             {/* Future Chat Route */}
-            <Route path="/chat" element={<div>Chat Coming Soon</div>} />
+
+            {/* 👈 UPDATED: Real Chat Page instead of placeholder */}
+            {/* <Route path="/chat" element={<ChatPage />} /> */}
+            <Route path="/chat" element={<ChatPage />} /> {/* Renders inside MainLayout's <main> */}
+
           </Route>
 
           {/* 3. SAFETY NET */}

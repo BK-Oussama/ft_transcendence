@@ -18,26 +18,43 @@ services:
     restart: always
 
   # --- The Frontend ---
+
   frontend:
-    build:
-      context: ./services/frontend
-      dockerfile: Dockerfile
+    image: node:lts-alpine
     container_name: frontend
+    working_dir: /app
+    volumes:
+      - ./services/frontend/app:/app
+      - /app/node_modules # Prevents host node_modules from overwriting container's
+    # Ensures dependencies are installed and Vite listens on the network
+    command: sh -c "npm install && npm run dev -- --host"
     networks:
       - transcendence-net
     restart: always
 
-  # --- The Frontend DEV (Hot Reloading) ---
-  frontend-dev:
-    image: node:lts-alpine
-    container_name: frontend-dev
-    working_dir: /app
-    volumes:
-      - ./services/frontend/app:/app
-      - /app/node_modules
-    command: sh -c "npm install && npm run dev -- --host"
-    networks:
-      - transcendence-net    
+
+
+
+  # frontend:
+  #   build:
+  #     context: ./services/frontend
+  #     dockerfile: Dockerfile
+  #   container_name: frontend
+  #   networks:
+  #     - transcendence-net
+  #   restart: always
+
+  # # --- The Frontend DEV (Hot Reloading) ---
+  # frontend-dev:
+  #   image: node:lts-alpine
+  #   container_name: frontend-dev
+  #   working_dir: /app
+  #   volumes:
+  #     - ./services/frontend/app:/app
+  #     - /app/node_modules
+  #   command: sh -c "npm install && npm run dev -- --host"
+  #   networks:
+  #     - transcendence-net    
 
   # --- Auth Service ---
   auth:
@@ -45,6 +62,8 @@ services:
       context: ./services/auth
       dockerfile: Dockerfile
     container_name: auth
+    volumes:
+      - ./services/auth/app/uploads:/app/uploads # 👈 This keeps the images alive!
     ports:
       - "8443:443"
     env_file:

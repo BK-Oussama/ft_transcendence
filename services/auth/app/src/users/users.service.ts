@@ -63,4 +63,14 @@ export class UsersService {
         });
         return { avatarUrl };
     }
+
+    // ouboukou: "Fetch basic profile info for the Chat Service identity sync"
+    async findOne(id: number) {
+        const user = await this.prisma.user.findUnique({
+            where: { id },
+            select: { id: true, firstName: true, lastName: true, avatarUrl: true },
+        });
+        if (!user) throw new BadRequestException('User not found');
+        return user;
+    }
 }

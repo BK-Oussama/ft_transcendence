@@ -14,6 +14,7 @@ model Message {
   content    String
   senderId   Int      
   senderName String   
+  senderAvatar String?
   createdAt  DateTime @default(now())
 
   @@index([createdAt])

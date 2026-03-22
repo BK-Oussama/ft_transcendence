@@ -1,13 +1,22 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
+import * as https from 'https';
+import * as fs from 'fs';
+
+import axios from 'axios';
+
 
 @Injectable()
 export class ChatService {
   private readonly logger = new Logger(ChatService.name);
-  // Internal service name 'auth' is correct for Docker networking
-  private readonly authUrl = 'https://auth:443'; 
+  private readonly authUrl = 'https://auth:443';
 
-  constructor(private prisma: PrismaService) {}
+// Tell the HTTPS agent to allow self-signed certificates for internal communication
+  private readonly httpsAgent = new https.Agent({
+    rejectUnauthorized: false,
+  });
+
+  constructor(private prisma: PrismaService) { }
 
   // Pillar 1: Basic Chat History
   async getHistory() {
@@ -17,46 +26,77 @@ export class ChatService {
     });
   }
 
-  // Required for your ChatGateway
-  async saveMessage(senderId: number, senderName: string, content: string) {
+  async saveMessage(userId: number, content: string, senderName: string, avatarUrl: string | null) {
     return this.prisma.message.create({
-      data: { senderId, senderName, content },
+      data: {
+        content: content,
+        senderId: userId,
+        senderName: senderName,
+        senderAvatar: avatarUrl, // 👈 Now saving this to the DB!
+      },
     });
   }
 
-  // Pillar 2: Friends & Blocking
+
+
   async setRelationship(userId: number, friendId: number, status: 'FRIEND' | 'BLOCKED') {
+    // If I want to be friends, check if they have blocked me first
+    if (status === 'FRIEND') {
+      const checkBlock = await this.prisma.relationship.findFirst({
+        where: {
+          userId: friendId,   // The person you are trying to add
+          friendId: userId, // YOU
+          status: 'BLOCKED'
+        }
+      });
+
+      if (checkBlock) {
+        // Use standard NestJS exception for a 403 response
+        throw new ForbiddenException('You cannot add this user: you are blocked.');
+      }
+    }
+
     return this.prisma.relationship.upsert({
-      where: {
-        userId_friendId: { userId, friendId },
-      },
+      where: { userId_friendId: { userId, friendId } },
       update: { status },
       create: { userId, friendId, status },
     });
   }
 
-  // Pillar 3: Profile System (Auth Sync)
+  async unblockUser(userId: number, friendId: number) {
+    return this.prisma.relationship.deleteMany({
+      where: {
+        userId: userId,
+        friendId: friendId,
+        status: 'BLOCKED'
+      }
+    });
+  }
+
+  async getBlockedUsers(userId: number) {
+    return this.prisma.relationship.findMany({
+      where: {
+        userId: userId,
+        status: 'BLOCKED'
+      },
+      // This allows you to see who they are (if you want to join with Auth later)
+      select: { friendId: true, createdAt: true }
+    });
+  }
+
+
+  // Pillar 4: Profile Sync (Secure Request to Auth Service)
+
   async getUserProfile(id: number, token: string) {
     try {
-      process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; 
-
-      // TRY THIS: If it still 404s, try adding /api/users/${id} if Auth has a prefix
-      const res = await fetch(`${this.authUrl}/users/${id}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+      const res = await axios.get(`${this.authUrl}/users/${id}`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+        httpsAgent: this.httpsAgent, // Axios respects this!
       });
-
-      if (!res.ok) {
-        const errorBody = await res.text();
-        this.logger.warn(`Auth Service responded with ${res.status}: ${errorBody}`);
-        throw new Error();
-      }
-      return await res.json();
-    } catch (e) {
-      throw new NotFoundException(`User ${id} not found in Auth Service database`);
+      return res.data;
+    } catch (err) {
+      this.logger.error(`Failed to fetch profile: ${err.message}`);
+      throw err;
     }
   }
 }
