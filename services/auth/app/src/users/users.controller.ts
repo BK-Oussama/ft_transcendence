@@ -1,4 +1,6 @@
-import { Controller, Patch, Post, Body, Req, UseGuards, UploadedFile, UseInterceptors } from '@nestjs/common';
+// import { Controller, Patch, Post, Body, Req, UseGuards, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Patch, Post, Body, Req, UseGuards, UploadedFile, UseInterceptors, Param, ParseIntPipe } from '@nestjs/common';
+
 import { UsersService } from './users.service';
 import { UpdateProfileDto } from './dto/profile.dto';
 import { UpdateEmailDto } from './dto/updateEmail.dto';
@@ -34,5 +36,11 @@ export class UsersController {
   updatePassword(@Req() req, @Body() body: UpdatePasswordDto) {
     return this.usersService.updateUserPassword(req.user.id, body);
   }
+
+  @Get(':id')
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.findOne(id);
+  }
+
 
 }

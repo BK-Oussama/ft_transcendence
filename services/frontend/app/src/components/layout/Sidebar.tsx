@@ -16,7 +16,8 @@ const Sidebar = () => {
       <nav className="flex-1 px-4 space-y-2">
         {/* Navigation Links */}
         <SidebarLink to="/boards" icon={<LayoutDashboard size={20} />} label="Board" />
-        <SidebarLink to="/chat" icon={<MessageSquare size={20} />} label="Chat" />
+        <SidebarLink to="/chat" icon={<MessageSquare size={20} />} label="Global Chat" />
+
         <SidebarLink to="/tasks" icon={<ListTodo size={20} />} label="My Tasks" />
         <SidebarLink to="/calendar" icon={<Calendar size={20} />} label="Calendar" />
         <SidebarLink to="/settings" icon={<Settings size={20} />} label="Settings" />

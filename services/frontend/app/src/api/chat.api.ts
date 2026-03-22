@@ -1,4 +1,5 @@
-import { apiClient } from './client';
+
+import api from './client';
 
 export interface Message {
   id: number;
@@ -9,17 +10,14 @@ export interface Message {
 }
 
 export const chatApi = {
-  getHistory: () => apiClient<Message[]>('/chat/history'),
+  getHistory: () => api.get<Message[]>('/chat/history').then(res => res.data),
   
   setRelationship: (id: number, status: 'FRIEND' | 'BLOCKED') => 
-    apiClient(`/chat/friend/${id}`, {
-      method: 'POST',
-      body: JSON.stringify({ status }),
-    }),
+    api.post(`/chat/friend/${id}`, { status }).then(res => res.data),
 
   unblockUser: (id: number) => 
-    apiClient(`/chat/unblock/${id}`, { method: 'POST' }),
+    api.post(`/chat/unblock/${id}`).then(res => res.data),
 
   getBlockedUsers: () => 
-    apiClient<{friendId: number, createdAt: string}[]>('/chat/blocks'),
+    api.get<{friendId: number, createdAt: string}[]>('/chat/blocks').then(res => res.data),
 };

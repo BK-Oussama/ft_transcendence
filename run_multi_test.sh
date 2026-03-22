@@ -5,6 +5,13 @@ echo "🔑 Fetching fresh tokens..."
 # 1. Capture tokens
 # We use -k because of self-signed certs
 
+# Register Alpha
+curl -k -X POST https://localhost/api/auth/register -H "Content-Type: application/json" -d '{"email":"alpha@test.com","password":"password","firstname":"Alpha","lastname":"Tester"}'
+
+# Register Beta
+curl -k -X POST https://localhost/api/auth/register -H "Content-Type: application/json" -d '{"email":"beta@test.com","password":"password","firstname":"Beta","lastname":"Tester"}'
+
+
 T_A=$(curl -s -k -X POST https://localhost/api/auth/login -H "Content-Type: application/json" -d '{"email":"alpha@test.com","password":"password"}' | jq -r .accessToken)
 
 T_B=$(curl -s -k -X POST https://localhost/api/auth/login -H "Content-Type: application/json" -d '{"email":"beta@test.com","password":"password"}' | jq -r .accessToken)
