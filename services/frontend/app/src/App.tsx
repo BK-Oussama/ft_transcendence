@@ -9,6 +9,7 @@ import OAuthSuccess from './features/auth/OAuthSuccess';
 import { ProtectedRoute } from './features/auth/ProtectedRoute';
 import MainLayout from './components/layout/MainLayout';
 import ChatPage from './features/chat/pages/ChatPage'; // Adjust path if needed
+import Dashboard from './features/dashboard/pages/Dashboard';
 
 import { AuthProvider } from './context/AuthContext';
 
@@ -25,8 +26,7 @@ export default function App() {
 
           {/* 2. PROTECTED ZONE - Wraps everything in Sidebar + Auth Check */}
           <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
-            <Route path="/dashboard" element={<div>Welcome to Dashboard</div>} />
-
+            <Route path="/dashboard" element={<Dashboard />} />
             {/* THIS IS THE MISSING LINK! */}
             <Route path="/boards" element={<BoardPage />} />
 
