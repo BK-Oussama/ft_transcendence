@@ -2,7 +2,6 @@ import { useEffect, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { chatApi, type Message } from '../../../api/chat.api';
 
-
 export const useChat = (token: string | null) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -11,53 +10,40 @@ export const useChat = (token: string | null) => {
   useEffect(() => {
     if (!token) return;
 
-    // const newSocket = io('https://localhost', {
-    //   path: '/api/chat/socket.io',
-    //   auth: { token },
-    //   rejectUnauthorized: false,
-    // });
     const newSocket = io('https://localhost', {
-      path: '/api/chat/socket.io', // 👈 This MUST match your Nginx config
+      path: '/api/chat/socket.io',
       auth: { token },
-      transports: ['websocket'], // Force WebSocket to avoid polling issues
+      transports: ['websocket'],
       rejectUnauthorized: false,
     });
 
-    // newSocket.on('connect', () => setConnected(true));
-    // newSocket.on('receive_msg', (msg) => setMessages((prev) => [...prev, msg]));
-
     newSocket.on('connect', () => {
-      console.log('✅ Socket Connected with ID:', newSocket.id);
+      console.log('✅ Socket Connected:', newSocket.id);
       setConnected(true);
     });
 
     newSocket.on('receive_msg', (msg) => {
-      console.log('📥 NEW MESSAGE RECEIVED:', msg); // 👈 DEBUG LOG
       setMessages((prev) => [...prev, msg]);
     });
 
     newSocket.on('connect_error', (err) => {
-      console.error('❌ SOCKET CONNECTION ERROR:', err.message);
+      console.error('❌ Socket Error:', err.message);
     });
 
     setSocket(newSocket);
 
-    // Fetch history on load
+    // Fetch history and align order (Oldest to Newest)
     chatApi.getHistory().then((data) => setMessages(data.reverse()));
 
     return () => { newSocket.close(); };
   }, [token]);
 
-
   const sendMessage = useCallback((content: string) => {
     if (socket && socket.connected) {
-      console.log('📤 Sending message:', content);
       socket.emit('send_msg', { content });
-    } else {
-      console.error('❌ Socket not connected. Cannot send message.');
     }
   }, [socket]);
 
-
-  return { messages, sendMessage, connected };
+  // ouboukou: "Export the socket so ChatPage can handle social events"
+  return { messages, sendMessage, connected, socket }; 
 };
