@@ -14,13 +14,8 @@ import { WsJwtGuard } from './auth/ws-jwt.guard';
 import { ChatService } from './chat.service';
 
 @WebSocketGateway({
-  // Matches the path Nginx expects after stripping /api/chat
   path: '/socket.io',
-  // Removed namespace: 'chat' to match your frontend io('https://localhost') call
-  cors: {
-    origin: '*', // Allows connection through the gateway
-    credentials: true,
-  },
+  cors: { origin: '*', credentials: true },
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
@@ -31,7 +26,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly chatService: ChatService,
   ) { }
 
-
   async handleConnection(client: Socket) {
     try {
       const token = client.handshake.auth?.token || client.handshake.headers?.authorization?.split(' ')[1];
@@ -40,16 +34,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const payload = await this.jwtService.verifyAsync(token);
       client.data.user = payload;
 
-      // 👈 Use 'sub' or 'id' if 'email' is missing
-      const identifier = payload.email || `User#${payload.sub}`;
-      this.logger.log(`✅ Chat Connected: ${identifier} (${client.id})`);
+      // ouboukou: "Place user in a private room for targeted real-time updates"
+      client.join(`user_${payload.sub}`);
+      this.logger.log(`✅ User ${payload.sub} connected to room user_${payload.sub}`);
     } catch (e) {
-      this.logger.error(`❌ Connection Refused: ${e.message}`);
       client.disconnect();
     }
   }
+
   handleDisconnect(client: Socket) {
-    this.logger.log(`🔌 Chat Disconnected: ${client.id}`);
+    this.logger.log(`🔌 Disconnected: ${client.id}`);
   }
 
   @UseGuards(WsJwtGuard)
@@ -59,31 +53,26 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const token = client.handshake.auth?.token || client.handshake.headers?.authorization?.split(' ')[1];
 
     try {
-      // 1. Fetch real-time identity from Auth Service
       const profile = await this.chatService.getUserProfile(user.sub, token);
-
-      // 2. Save with 4 arguments
       const savedMsg = await this.chatService.saveMessage(
         user.sub,
         data.content,
-        profile.firstName + ' ' + profile.lastName,
-        profile.avatarUrl // 👈 4th argument: real URL from Auth DB
+        `${profile.firstName} ${profile.lastName}`,
+        profile.avatarUrl
       );
-
-      // 3. Broadcast
       this.server.emit('receive_msg', savedMsg);
-
     } catch (e) {
-      this.logger.error(`❌ Identity fetch failed: ${e.message}`);
-
-      // ouboukou: "Instead of 'User', use the identifier from the JWT (email or ID) as a better fallback"
-      const fallbackName = user.email || `User#${user.sub}`;
-
-      const fallback = await this.chatService.saveMessage(user.sub, data.content, fallbackName, null);
+      const fallback = await this.chatService.saveMessage(user.sub, data.content, user.email || `User#${user.sub}`, null);
       this.server.emit('receive_msg', fallback);
     }
   }
 
+  // ouboukou: "Notify users involved in a social change to refresh their data"
+  @UseGuards(WsJwtGuard)
+  @SubscribeMessage('refresh_social')
+  handleSocialUpdate(@MessageBody() data: { targetId: number }, @ConnectedSocket() client: any) {
+    const senderId = client.data.user.sub;
+    this.server.to(`user_${data.targetId}`).emit('social_update');
+    this.server.to(`user_${senderId}`).emit('social_update');
+  }
 }
-
-
