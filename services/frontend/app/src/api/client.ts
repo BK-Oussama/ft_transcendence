@@ -1,38 +1,24 @@
-import axios from 'axios';
+// export const BASE_URL = import.meta.env.VITE_API_URL;
 
-// This is the ONLY place in the whole project 
-// where the Gateway URL is defined.
-// Use a separate axios instance for refresh requests to avoid interceptor loops
-const refreshApi = axios.create({ baseURL: 'https://localhost/api', withCredentials: true });
+export async function apiClient<T>(
+  endpoint: string,
+  options: RequestInit = {},
+  baseUrl: string = 'https://localhost/api'
+): Promise<T> {
+  const token = localStorage.getItem('access_token');
 
-const api = axios.create({ baseURL: 'https://localhost/api', withCredentials: true });
+  const isFormData = options.body instanceof FormData;
 
-api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    console.error('API Error:', error.config?.url, error.response?.status, error.response?.data);
-    if (error.response?.status === 401) {
-      localStorage.removeItem("access_token");
-      const currentPath = window.location.pathname;
-      if (currentPath !== '/login' && currentPath !== '/register') {
-        window.location.href = "/login";
-      }
-    }
-    return Promise.reject(error);
-  }
-);
+  const res = await fetch(`${baseUrl}${endpoint}`, {
+    ...options,
+    headers: {
+      // only set Content-Type for JSON, not FormData
+      ...(!isFormData && { 'Content-Type': 'application/json' }),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...options.headers,
+    },
+  });
 
-
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("access_token");
-
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
-  return config;
-});
-
-export default api;
+  if (!res.ok) throw new Error(`${res.status}`);
+  return res.json();
+}

@@ -12,6 +12,8 @@ import {
   UseGuards,
   Req,
   Query,
+  StreamableFile,
+  NotFoundException,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TasksService } from './tasks.service';
@@ -20,7 +22,8 @@ import { TasksGateway } from './tasks.gateway';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { extname, join } from 'path';
+import { createReadStream, existsSync } from 'fs';
 import { TaskStatus } from './dto/task-status.enum';
 
 @Controller('tasks')
@@ -31,6 +34,16 @@ export class TasksController {
     private readonly tasksGateway: TasksGateway,
   ) {}
 
+  @Get('uploads/:filename')
+  getFile(@Param('filename') filename: string): StreamableFile {
+    const filePath = join(process.cwd(), 'uploads', filename);
+
+    if (!existsSync(filePath))
+      throw new NotFoundException('File not found on the server');
+
+    const file = createReadStream(filePath);
+    return new StreamableFile(file);
+  }
   /////////////////////////////////////////////
   // added by the dashboard service
   @Get('my-tasks')
@@ -52,7 +65,6 @@ export class TasksController {
     return this.tasksService.update(id, { status: body.status as TaskStatus });
   }
   ///////////////////////////////////////////////
-
 
   @Post()
   @UseInterceptors(

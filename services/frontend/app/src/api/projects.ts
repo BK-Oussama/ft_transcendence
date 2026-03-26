@@ -1,4 +1,4 @@
-import api from './client';
+import { apiClient } from './client';
 
 export interface Project {
     id: number;
@@ -23,57 +23,23 @@ export interface CreateProjectData {
     dueDate?: string;
 }
 
-/////////////////////////////////////////////
-// changed by the boards service
-
-// export const projectsApi = {
-//     getAll: () => api<Project[]>('/projects'),
-//
-//     create: (data: CreateProjectData) =>
-//         api<Project>('/projects', {
-//         method: 'POST',
-//         body: JSON.stringify(data),
-//     }),
-//
-//     delete: (id: number) => {
-//         // console.log(`Deleting project with ID: ${id}`); // Debug log
-//         return api<void>(`/projects${id}/`, { method: 'DELETE' });
-//     },
-//
-//     update: (id: number, data: Partial<CreateProjectData>) =>
-//         api<Project>(`/projects${id}/`, {
-//         method: 'PUT',
-//         body: JSON.stringify(data),
-//     }),
-// };
-
 export const projectsApi = {
-    getAll: async () => {
-        try {
-            const response = await api.get('/projects');
-            if (!response)
-                throw new Error("Backend did not respond.");
-            const data = response.data || response;
-            if (Array.isArray(data))
-                return data;
-            else if (data && Array.isArray(data.data))
-                return data.data;
-            return [];
-        } catch (error) {
-            throw error; 
-        }
+    getAll: () => apiClient<Project[]>('/projects/'),
+
+    create: (data: CreateProjectData) =>
+        apiClient<Project>('/projects/', {
+        method: 'POST',
+        body: JSON.stringify(data),
+    }),
+
+    delete: (id: number) => {
+        // console.log(`Deleting project with ID: ${id}`); // Debug log
+        return apiClient<void>(`/projects/${id}/`, { method: 'DELETE' });
     },
-    create: async (data: CreateProjectData) => {
-        const response = await api.post<Project>('/projects', data);
-        return response.data;
-    },
-    delete: async (id: number) => {
-        const response = await api.delete<void>(`/projects${id}/`);
-        return response.data;
-    },
-    update: async (id: number, data: Partial<CreateProjectData>) => {
-        const response = await api.put<Project>(`/projects${id}/`, data);
-        return response.data;
-    },
+
+    update: (id: number, data: Partial<CreateProjectData>) =>
+        apiClient<Project>(`/projects/${id}/`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+    }),
 };
-/////////////////////////////////////////////

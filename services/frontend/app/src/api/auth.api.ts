@@ -1,4 +1,4 @@
-import api from "./client";
+import api from "./kanbanClient.ts";
 import type { LoginDto, RegisterDto, AuthResponse, User } from "../types/auth.types.ts";
 
 const storeAccessToken = (token?: string) => {

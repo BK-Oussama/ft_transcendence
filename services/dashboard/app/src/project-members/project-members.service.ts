@@ -52,7 +52,7 @@ export class ProjectMembersService {
             members.map(async (member) => {
             try {
                 const { data } = await firstValueFrom(
-                this.httpService.get<any>(`https://auth/api/auth/users/${member.userId}`, {
+                this.httpService.get<any>(`https://auth/users/${member.userId}`, {
                     headers: { Authorization: `Bearer ${token}` },
                 })
                 );
@@ -79,7 +79,7 @@ export class ProjectMembersService {
                 id: user.id,
                 name: `${user.firstName} ${user.lastName}`,
                 email: user.email,
-                avatar: user.avatar || null,
+                avatar: user.avatar || user.avatarUrl || user.avatar_url || null,
                 } : null,
             };
         });
