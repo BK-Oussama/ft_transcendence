@@ -1,4 +1,4 @@
-import { use, useState } from 'react';
+import { useState } from 'react';
 import { type Member } from '../types/member';
 import { Filter, Search, UserPlus, Users } from 'lucide-react';
 import MemberCard from '../components/members/MemberCard';
@@ -6,9 +6,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { membersApi } from '../api/members';
 import AddMemberModal from '../components/members/AddMemberModal';
 import { useLocation } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import { projectsApi, type Project } from '../api/projects';
 
-// ⚠️ TODO: replace this with the real projectId from routing
-// when your teammate connects the sidebar/topbar (e.g. useParams())
 // const TEMP_PROJECT_ID = 1;
 
 const MembersPage = () => {
@@ -18,16 +18,32 @@ const MembersPage = () => {
     const queryClient = useQueryClient();
     const location = useLocation();
     const projectId = Number(new URLSearchParams(location.search).get('projectId')) || 1;
-
+    const { user } = useAuth();
+ 
     // const members: any[] = [];
     // const isLoading = false;
     // const error = null;
+
+    // const getUserRole = (project: Project): string | null => {
+    //     if (!user) return null;
+    //     const member = project.members.find(m => m.userId === Number(user.id));
+    //     return member?.role ?? null;
+    // };
 
     //FETCH members
     const {data: members = [], isLoading, error} = useQuery({
         queryKey: ['members', projectId],
         queryFn: () => membersApi.getAll(projectId),
     });
+
+    const getUserRole = (membersList: Member[]): string | null => {
+        if (!user || !membersList) return null;    
+        // Search the members array for the entry matching the current user's ID
+        const member = membersList.find(m => m.userId === Number(user.id));
+        return member?.role ?? null;
+    };
+
+    const canAddMember = !(getUserRole(members)?.toUpperCase() === 'MEMBER');
 
     // REMOVE member
     const removeMutation = useMutation({
@@ -178,13 +194,16 @@ const MembersPage = () => {
                 Add Member
             </button> */}
 
-            <button
-                onClick={() => setIsAddModalOpen(true)}
-                className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-5 py-2.5 rounded-xl hover:from-blue-600 hover:to-indigo-600 transition-all font-semibold text-sm shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5 active:translate-y-0"
-            >
-                <UserPlus size={16} />
-                Add Member
-            </button>
+            {canAddMember && (
+                <button
+                    onClick={() => setIsAddModalOpen(true)}
+                    className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-5 py-2.5 rounded-xl hover:from-blue-600 hover:to-indigo-600 transition-all font-semibold text-sm shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5 active:translate-y-0"
+                >
+                    <UserPlus size={16} />
+                    Add Member
+                </button>
+            )}
+
 
         </div>
 
@@ -276,6 +295,7 @@ const MembersPage = () => {
                     }}
                     onDelete={handleDeleteMemeber}
                     onChangeRole={handleChangeRole}
+                    currentUserRole={getUserRole(members)}
                 />
 
             ))}

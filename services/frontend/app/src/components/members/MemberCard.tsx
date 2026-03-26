@@ -5,6 +5,7 @@ import { useAuth } from '../../hooks/useAuth';
 
 interface MemberCardProps {
     member: Member;
+    currentUserRole: string | null;
     onDelete: (memberId: number) => void;
     onChangeRole: (memberID: number, newRole: Member['role']) => void;
 }
@@ -16,9 +17,20 @@ const roleStyles: Record<string, string> = {
     viewer: 'bg-slate-50 border-slate-100 text-slate-500',
 };
 
-const MemberCard = ({ member, onDelete, onChangeRole }: MemberCardProps) => {
+const MemberCard = ({ member, onDelete, onChangeRole, currentUserRole }: MemberCardProps) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
+    const { user } = useAuth();
+    const isSelf = Number(user?.id) === member.id;
+
+    // const canEdit = currentUserRole === 'OWNER' || currentUserRole === 'ADMIN';
+
+    const isTargetOwner = member.role.toUpperCase() === 'OWNER';
+    const isUserOwner = currentUserRole?.toUpperCase() === 'OWNER';
+    const isUserAdmin = currentUserRole?.toUpperCase() === 'ADMIN';
+
+    // const isMember = currentUserRole?.toUpperCase() == 'MEMBER'
+    const canEdit = (isUserOwner || (isUserAdmin && !isTargetOwner)) && !isSelf;
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -48,19 +60,21 @@ const MemberCard = ({ member, onDelete, onChangeRole }: MemberCardProps) => {
             }`}
         >
             <div className="absolute top-5 right-5" ref={menuRef}>
-                <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        setIsMenuOpen(!isMenuOpen);
-                    }}
-                    className={`p-2 rounded-xl transition-all ${
-                        isMenuOpen 
-                            ? 'bg-slate-100 text-slate-900 opacity-100' 
-                            : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600 opacity-0 group-hover:opacity-100'
-                    }`}
-                >
+                {canEdit && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setIsMenuOpen(!isMenuOpen);
+                        }}
+                        className={`p-2 rounded-xl transition-all ${
+                            isMenuOpen 
+                                ? 'bg-slate-100 text-slate-900 opacity-100' 
+                                : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600 opacity-0 group-hover:opacity-100'
+                        }`}
+                    >
                     <MoreVertical size={18} />
-                </button>
+                    </button>
+                )}
 
                 {isMenuOpen && (
                     <div className="absolute right-0 mt-2 w-52 bg-white rounded-2xl shadow-2xl shadow-slate-200 border border-slate-100 py-2 z-[110] animate-in fade-in zoom-in duration-200">
