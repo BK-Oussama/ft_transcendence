@@ -149,9 +149,8 @@ const Topbar = () => {
     ? `${user.firstName} ${user.lastName}`
     : '...';
   
-const avatarUrl = user?.avatarUrl && !user.avatarUrl.includes('default')
-  ? `https://localhost${user.avatarUrl}`
-  : null;
+    const rawAvatar = user?.avatar || user?.avatarUrl;
+    const avatarUrl = rawAvatar ? `https://localhost${rawAvatar}` : null;
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {

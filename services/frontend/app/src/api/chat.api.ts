@@ -1,5 +1,4 @@
-
-import api from './client';
+import api from './chatClient';
 
 export interface Message {
   id: number;

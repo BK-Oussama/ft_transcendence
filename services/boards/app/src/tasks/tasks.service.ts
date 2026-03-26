@@ -48,37 +48,41 @@ export class TasksService {
     updateTaskDto: UpdateTaskDto & { attachmentUrl?: string },
   ) {
     try {
+      const existingTask = await this.prisma.task.findUnique({
+        where: { id: id },
+      });
+
+      if (!existingTask)
+        throw new NotFoundException(`Task with ID ${id} not found`);
+
       const { assignedTo, startDate, dueDate, attachmentUrl, projectId, ...rest } =
         updateTaskDto;
       const dataToUpdate: any = { ...rest };
 
-      if (attachmentUrl !== undefined) {
+      if (attachmentUrl !== undefined)
         dataToUpdate.attachment_url = attachmentUrl;
-      }
 
-      if (assignedTo !== undefined) {
+      if (assignedTo !== undefined)
         dataToUpdate.assigned_to = assignedTo;
-      }
 
       if (startDate !== undefined)
         dataToUpdate.start_date = startDate ? new Date(startDate) : null;
       if (dueDate !== undefined)
         dataToUpdate.due_date = dueDate ? new Date(dueDate) : null;
+
       const task = await this.prisma.task.update({
         where: { id: id },
         data: dataToUpdate,
       });
 
       this.tasksGateway.broadcastTaskUpdated(task);
-
-      if (updateTaskDto.status) {
+      if (updateTaskDto.status && updateTaskDto.status !== existingTask.status)
         this.tasksGateway.sendNotification(
           `Task "${task.title}" moved to ${task.status}`,
         );
-      } else {
-        this.tasksGateway.sendNotification(`Task "${task.title}" was updated`);
-      }
-      return task;
+        else
+          this.tasksGateway.sendNotification(`Task "${task.title}" was updated`);
+        return task;
     } catch (error) {
       if (error.code === 'P2025') {
         throw new NotFoundException(`Task with ID ${id} not found`);
@@ -86,7 +90,6 @@ export class TasksService {
       throw error;
     }
   }
-
   async reorder(taskIds: number[]) {
     const updates = taskIds.map((id, index) => {
       return this.prisma.task.update({

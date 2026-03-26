@@ -165,7 +165,7 @@
 //         ))}
 //       </nav>
 
-//       {/* Bottom — Quick Stats */}
+//       {/* Bottom — Quick Stats */}Global Channel
 //       <div className="p-4 mx-2 mb-4 rounded-2xl bg-[#252930] border border-gray-800/50">
 //         <p className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-4">
 //           Quick Stats
@@ -233,7 +233,9 @@ import {
   ChevronLeft,
   Users,
 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { io } from 'socket.io-client';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { tasksApi } from '../../api/tasks';
 import { projectsApi } from '../../api/projects';
 import { useSearchParams, useNavigate } from 'react-router-dom';
@@ -241,13 +243,17 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const isInWorkspace = ['/board', '/members', '/settings'].includes(location.pathname);
+  const queryClient = useQueryClient();
+  // const isInWorkspace = ['/board', '/members', '/settings'].includes(location.pathname);
+  const urlProjectId = new URLSearchParams(location.search).get('projectId');
+  const isInWorkspace = !!urlProjectId; 
+  const projectId = Number(urlProjectId) || 1;
 //   const projectId = Number(searchParams.get('projectId')) || 1;
 
-const projectId = Number(new URLSearchParams(location.search).get('projectId')) || 1;
+// const projectId = Number(new URLSearchParams(location.search).get('projectId')) || 1;
 
   const mainMenuItems = [
-    { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
+    { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
     { name: 'My Tasks',  icon: ListTodo,         path: '/tasks' },
     { name: 'Calendar',  icon: Calendar,          path: '/calendar' },
     { name: 'Chat',      icon: MessageCircle,     path: '/chat' },
@@ -256,11 +262,30 @@ const projectId = Number(new URLSearchParams(location.search).get('projectId')) 
   const workspaceMenuItems = [
     { name: 'Board',     icon: LayoutGrid,     path: `/board?projectId=${projectId}` },
     { name: 'Members',   icon: Users,          path: `/members?projectId=${projectId}` },
-    { name: 'Chat',      icon: MessageSquare,  path: '/chat' },
-    { name: 'My Tasks',  icon: ListTodo,       path: '/tasks' },
-    { name: 'Calendar',  icon: Calendar,       path: '/calendar' },
+    { name: 'My Tasks',  icon: ListTodo,       path: `/tasks?projectId=${projectId}` },
+    { name: 'Calendar',  icon: Calendar,       path: `/calendar?projectId=${projectId}` },
   ];
 
+useEffect(() => {
+    const socket = io("https://localhost", {
+      path: '/api/socket.io/', 
+      transports: ["websocket"],
+      secure: true,
+    });
+
+    const refreshSidebarStats = () => {
+      queryClient.invalidateQueries({ queryKey: ['my-tasks'] });
+    };
+
+    socket.on("task:created", refreshSidebarStats);
+    socket.on("task:updated", refreshSidebarStats);
+    socket.on("task:deleted", refreshSidebarStats);
+    socket.on("board:updated", refreshSidebarStats);
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [queryClient]);
   const { data: tasks = [] } = useQuery({
     queryKey: ['my-tasks'],
     queryFn: tasksApi.getMyTasks,
@@ -272,7 +297,7 @@ const projectId = Number(new URLSearchParams(location.search).get('projectId')) 
   });
 
   const currentProject = projects.find(p => p.id === projectId);
-  const doneTasks  = tasks.filter(t => t.status === 'done').length;
+  const doneTasks  = tasks.filter(t => t.status === 'DONE').length;
   const totalTasks = tasks.length;
   const progress   = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
 
@@ -290,7 +315,7 @@ const projectId = Number(new URLSearchParams(location.search).get('projectId')) 
           {/* Workspace header */}
           <div className="px-4 pb-4">
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/dashboard')}
               className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-300 transition-colors mb-3"
             >
               <ChevronLeft size={14} />
@@ -425,14 +450,14 @@ const projectId = Number(new URLSearchParams(location.search).get('projectId')) 
               </div>
               <span className="text-xs font-bold text-gray-300">{projects.length}</span>
             </div>
-            {tasks.filter(t => t.status !== 'done' && t.due_date && new Date(t.due_date) < new Date()).length > 0 && (
+            {tasks.filter(t => t.status !== 'DONE' && t.due_date && new Date(t.due_date) < new Date()).length > 0 && (
               <div className="flex items-center justify-between py-2.5 border-t border-gray-800/60">
                 <div className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
                   <span className="text-xs text-gray-400 font-medium">Overdue</span>
                 </div>
                 <span className="text-xs font-bold text-red-400">
-                  {tasks.filter(t => t.status !== 'done' && t.due_date && new Date(t.due_date) < new Date()).length}
+                  {tasks.filter(t => t.status !== 'DONE' && t.due_date && new Date(t.due_date) < new Date()).length}
                 </span>
               </div>
             )}

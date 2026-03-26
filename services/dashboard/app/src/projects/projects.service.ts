@@ -88,7 +88,7 @@ export class ProjectsService {
 
                 try {
                     const { data: ownerData } = await firstValueFrom(
-                        this.httpService.get<any>(`https://auth/api/auth/users/${ownerMember.userId}`, {
+                        this.httpService.get<any>(`https://auth/users/${ownerMember.userId}`, {
                             headers: { Authorization: `Bearer ${token}` },
                         })
                     );
@@ -156,7 +156,7 @@ export class ProjectsService {
 
     async searchUsers(search: string, token: string) {
         const { data } = await firstValueFrom(
-            this.httpService.get<any>(`https://auth/api/auth/users/search?search=${search}`, {
+            this.httpService.get<any>(`https://auth/users/search?search=${search}`, {
             headers: { Authorization: `Bearer ${token}` },
             })
         );

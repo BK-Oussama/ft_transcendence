@@ -1,50 +1,53 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-// Feature Imports
-import Home from './features/home/Home';
-import BoardPage from './features/boards/KanbanBoardPage'; // Import your Board UI
-import { RegisterPage } from './features/auth/pages/RegisterPage'; // Updated paths
-import { LoginPage } from './features/auth/pages/LoginPage'; // Updated paths
-import { SettingsPage } from './features/settings/pages/SettingsPage';
-import OAuthSuccess from './features/auth/OAuthSuccess';
-import { ProtectedRoute } from './features/auth/ProtectedRoute';
-import MainLayout from './components/layout/MainLayout';
-import ChatPage from './features/chat/pages/ChatPage'; // Adjust path if needed
-import Dashboard from './features/dashboard/pages/Dashboard';
+import { Route, BrowserRouter as Router, Routes } from 'react-router'
+import Layout from './components/layout/Layout'
+import Dashboard from './pages/Dashboard'
+import CalendarPage from './pages/Calendar'
+import MembersPage from './pages/MembersPage'
+import MyTasksPage from './pages/MyTasksPage'
+import KanbanBoardPage from './pages/KanbanBoardPage'
 
+// auth frontend stuff
+import { LoginPage } from './pages/LoginPage';
+import { RegisterPage } from './pages/RegisterPage';
+import OAuthSuccess from './components/auth/OAuthSuccess';
 import { AuthProvider } from './context/AuthContext';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { SettingsPage } from './pages/SettingsPage'
+import ChatPage from './pages/ChatPage'
 
-export default function App() {
+
+function App() {
   return (
-    <BrowserRouter>
+    <Router>
       <AuthProvider>
         <Routes>
-          {/* 1. PUBLIC ZONE - No Sidebar */}
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/oauth-success" element={<OAuthSuccess />} />
-
-          {/* 2. PROTECTED ZONE - Wraps everything in Sidebar + Auth Check */}
-          <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            {/* THIS IS THE MISSING LINK! */}
-            <Route path="/boards" element={<BoardPage />} />
-
-            <Route path="/settings" element={<SettingsPage />} />
-
-            {/* Future Chat Route */}
-
-            {/* 👈 UPDATED: Real Chat Page instead of placeholder */}
-            {/* <Route path="/chat" element={<ChatPage />} /> */}
-            <Route path="/chat" element={<ChatPage />} /> {/* Renders inside MainLayout's <main> */}
-
-          </Route>
-
-          {/* 3. SAFETY NET */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+            
+            {/* Public routes */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} /> 
+            <Route path="/oauth-success" element={<OAuthSuccess />} />
+            
+            {/* Protected routes */}
+            <Route element={
+              <ProtectedRoute>
+                <Layout />
+              </ProtectedRoute>
+            }>
+            
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/calendar" element={<CalendarPage />} />
+              <Route path="/members" element={<MembersPage />} />
+              <Route path="/tasks" element={<MyTasksPage />} />
+              <Route path="/board" element={<KanbanBoardPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/chat" element={<ChatPage />} />
+              
+            </Route>
+          
+          </Routes>
       </AuthProvider>
-    </BrowserRouter>
+    </Router>
   );
 }
 
+export default App

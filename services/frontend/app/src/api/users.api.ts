@@ -1,4 +1,4 @@
-import api from "./client";
+import api from "./kanbanClient";
 
 export const updateProfileApi = async (data: {
     firstName?: string;
