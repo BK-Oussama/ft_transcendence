@@ -1,4 +1,4 @@
-import { Injectable, Logger, ForbiddenException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
 import * as https from 'https';
 import axios from 'axios';
@@ -8,19 +8,44 @@ export class ChatService {
   private readonly logger = new Logger(ChatService.name);
   private readonly authUrl = 'https://auth:443';
 
-  // ouboukou: "Trust internal self-signed certificates for Docker networking"
   private readonly httpsAgent = new https.Agent({
     rejectUnauthorized: false,
   });
 
   constructor(private prisma: PrismaService) { }
 
-  // --- Messaging Logic ---
-  async getHistory() {
-    return this.prisma.message.findMany({
+  // --- Messaging Logic with Identity Hydration ---
+  async getHistory(token: string) {
+    const messages = await this.prisma.message.findMany({
       take: 50,
       orderBy: { createdAt: 'desc' },
     });
+
+    // Extract unique sender IDs to avoid redundant Auth API calls
+    const uniqueSenderIds = [...new Set(messages.map(m => m.senderId))];
+
+    // Fetch fresh profiles for everyone in the history
+    const profiles = await Promise.all(
+      uniqueSenderIds.map(async (id) => {
+        try {
+          return await this.getUserProfile(id, token);
+        } catch (e) {
+          return null; 
+        }
+      })
+    );
+
+    // Create a map: { userId: latestAvatarUrl }
+    const avatarMap = profiles.reduce((acc, p) => {
+      if (p) acc[p.id] = p.avatarUrl;
+      return acc;
+    }, {} as Record<number, string | null>);
+
+    // Overwrite the stale DB avatar with the live one from the Auth Service
+    return messages.map(msg => ({
+      ...msg,
+      senderAvatar: avatarMap[msg.senderId] || msg.senderAvatar
+    }));
   }
 
   async saveMessage(userId: number, content: string, senderName: string, avatarUrl: string | null) {
@@ -34,15 +59,7 @@ export class ChatService {
     });
   }
 
-  // --- Social Logic (Pending / Friend / Block) ---
-  // async getRelationships(userId: number) {
-  //   return this.prisma.relationship.findMany({
-  //     where: {
-  //       OR: [{ userId: userId }, { friendId: userId }]
-  //     },
-  //   });
-  // }
-
+  // --- Social Logic ---
   async getRelationships(userId: number, token: string) {
     const rels = await this.prisma.relationship.findMany({
       where: {
@@ -51,9 +68,7 @@ export class ChatService {
     });
 
     return Promise.all(rels.map(async (rel) => {
-      // Determine who the "other" person is
       const targetId = rel.userId === userId ? rel.friendId : rel.userId;
-
       try {
         const profile = await this.getUserProfile(targetId, token);
         return {
@@ -62,7 +77,6 @@ export class ChatService {
           targetAvatar: profile.avatarUrl,
         };
       } catch (e) {
-        // Fallback if the Auth service is down or user is deleted
         return {
           ...rel,
           targetName: `User #${targetId}`,
@@ -73,12 +87,11 @@ export class ChatService {
   }
 
   async setRelationship(userId: number, friendId: number, status: string) {
-    // If accepting a request: Look for an existing PENDING request sent to YOU
     if (status === 'FRIEND') {
       const updated = await this.prisma.relationship.updateMany({
         where: {
-          userId: friendId,   // The sender
-          friendId: userId,   // You (the receiver)
+          userId: friendId,
+          friendId: userId,
           status: 'PENDING'
         },
         data: { status: 'FRIEND' }
@@ -86,7 +99,6 @@ export class ChatService {
       if (updated.count > 0) return updated;
     }
 
-    // Otherwise (New Pending or Block): Upsert the record
     return this.prisma.relationship.upsert({
       where: { userId_friendId: { userId, friendId } },
       update: { status },
@@ -94,9 +106,7 @@ export class ChatService {
     });
   }
 
-
   async unblockUser(userId: number, friendId: number) {
-    // ouboukou: "This now deletes the record regardless of status (Pending or Blocked)"
     return this.prisma.relationship.deleteMany({
       where: {
         OR: [
@@ -126,17 +136,5 @@ export class ChatService {
       this.logger.error(`❌ Identity bridge failed for user ${id}: ${err.message}`);
       throw err;
     }
-  }
-
-  // ouboukou: "Returns the user to a 'Stranger' state by removing the DB record"
-  async removeRelationship(userId: number, friendId: number) {
-    return this.prisma.relationship.deleteMany({
-      where: {
-        OR: [
-          { userId: userId, friendId: friendId },
-          { userId: friendId, friendId: userId }
-        ]
-      }
-    });
   }
 }

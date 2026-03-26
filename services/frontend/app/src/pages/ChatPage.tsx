@@ -17,7 +17,6 @@ const ChatPage = () => {
 
   useEffect(() => { 
     fetchRelationships();
-    // ouboukou: "Listen for the poke from the server to refresh sidebar instantly"
     if (socket) {
       socket.on('social_update', fetchRelationships);
       return () => { socket.off('social_update'); };
@@ -46,8 +45,6 @@ const ChatPage = () => {
       }
       fetchRelationships();
       setActivePopover(null);
-      
-      // ouboukou: "Tell the server to notify the other user to refresh"
       socket?.emit('refresh_social', { targetId }); 
     } catch (err) { toast.error("Action failed"); }
   };
@@ -81,11 +78,16 @@ const ChatPage = () => {
             const isFriend = friends.some(f => f.userId === msg.senderId || f.friendId === msg.senderId);
             const displayName = isOwn ? `${currentUser?.firstName} ${currentUser?.lastName}` : msg.senderName;
             
+            // Cache Buster Logic: Ensure avatars refresh when users change their photo
+            const avatarUrl = isOwn 
+              ? (currentUser?.avatarUrl ? `${currentUser.avatarUrl}?t=${new Date().getTime()}` : null)
+              : (msg.senderAvatar ? `${msg.senderAvatar}?t=${new Date(msg.createdAt).getTime()}` : null);
+
             return (
               <div key={msg.id} className={`group flex gap-4 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
                 <div className="relative flex-shrink-0">
                   <img
-                    src={msg.senderAvatar || `https://api.dicebear.com/7.x/initials/svg?seed=${displayName}`}
+                    src={avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${displayName}`}
                     className="w-11 h-11 rounded-2xl border border-gray-100 bg-white object-cover shadow-sm cursor-pointer hover:rotate-3 transition-all"
                     onClick={() => !isOwn && setActivePopover(activePopover === msg.id ? null : msg.id)}
                     alt="avatar"
@@ -132,7 +134,7 @@ const ChatPage = () => {
               {incomingRequests.map(req => (
                 <div key={req.id} className="flex items-center justify-between bg-white/10 p-2 rounded-2xl">
                   <div className="flex items-center gap-2">
-                    <img src={req.targetAvatar || `https://api.dicebear.com/7.x/initials/svg?seed=${req.targetName}`} className="w-6 h-6 rounded-full object-cover bg-white/20" alt="" />
+                    <img src={req.targetAvatar ? `${req.targetAvatar}?t=${new Date(req.createdAt).getTime()}` : `https://api.dicebear.com/7.x/initials/svg?seed=${req.targetName}`} className="w-6 h-6 rounded-full object-cover bg-white/20" alt="" />
                     <span className="text-xs font-bold text-white truncate max-w-[80px]">{req.targetName}</span>
                   </div>
                   <div className="flex gap-1">
@@ -150,7 +152,7 @@ const ChatPage = () => {
           <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar">
             {friends.map(f => (
               <div key={f.id} className="flex items-center gap-3 p-2 rounded-2xl hover:bg-gray-50">
-                <img src={f.targetAvatar || `https://api.dicebear.com/7.x/initials/svg?seed=${f.targetName}`} className="w-10 h-10 rounded-full object-cover border border-gray-100 shadow-sm" alt="" />
+                <img src={f.targetAvatar ? `${f.targetAvatar}?t=${new Date(f.createdAt).getTime()}` : `https://api.dicebear.com/7.x/initials/svg?seed=${f.targetName}`} className="w-10 h-10 rounded-full object-cover border border-gray-100 shadow-sm" alt="" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-gray-800 truncate capitalize">{f.targetName}</p>
                   <p className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Friend</p>

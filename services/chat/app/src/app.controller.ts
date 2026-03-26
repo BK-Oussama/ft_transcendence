@@ -20,8 +20,11 @@ export class AppController {
   health() { return { status: 'ok' }; }
 
   @UseGuards(JwtAuthGuard)
-  @Get('history')
-  getHistory() { return this.chatService.getHistory(); }
+@Get('history')
+async getHistory(@Req() req) {
+  const token = req.headers.authorization?.split(' ')[1];
+  return this.chatService.getHistory(token);
+}
 
   // FIX: Read status from Body to support BLOCKED or FRIEND
   @UseGuards(JwtAuthGuard)
