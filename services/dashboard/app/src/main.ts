@@ -16,10 +16,10 @@ async function bootstrap() {
   // remove this
 
   // JUST FOR TESTING THE FRONTEND
-  app.enableCors({
-    origin: 'http://localhost:5173', // your Vite dev server
-    credentials: true,
-  });
+  // app.enableCors({
+  //   origin: 'http://localhost:5173', // your Vite dev server
+  //   credentials: true,
+  // });
   
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,

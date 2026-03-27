@@ -24,10 +24,10 @@ async function bootstrap() {
   );
 
   // remove this after testing
-  app.enableCors({
-    origin: 'http://localhost:5173',
-    credentials: true,
-  });
+  // app.enableCors({
+  //   origin: 'http://localhost:5173',
+  //   credentials: true,
+  // });
 
   app.enableShutdownHooks();
   // app.enableCors(); uncomment this when im finished with my task page

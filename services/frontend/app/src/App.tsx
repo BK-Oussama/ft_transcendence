@@ -1,19 +1,23 @@
-import { Route, BrowserRouter as Router, Routes } from 'react-router'
-import Layout from './components/layout/Layout'
-import Dashboard from './pages/Dashboard'
-import CalendarPage from './pages/Calendar'
-import MembersPage from './pages/MembersPage'
-import MyTasksPage from './pages/MyTasksPage'
-import KanbanBoardPage from './pages/KanbanBoardPage'
+import { Route, BrowserRouter as Router, Routes, Navigate } from 'react-router-dom';
 
-// auth frontend stuff
+import Home from './pages/Home';
+import PrivacyPolicy from './pages/PrivacyPolicy'; 
+import TermsOfService from './pages/TermsOfService';
+
+import Layout from './components/layout/Layout';
+import Dashboard from './pages/Dashboard';
+import CalendarPage from './pages/Calendar';
+import MembersPage from './pages/MembersPage';
+import MyTasksPage from './pages/MyTasksPage';
+import KanbanBoardPage from './pages/KanbanBoardPage';
+
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import OAuthSuccess from './components/auth/OAuthSuccess';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
-import { SettingsPage } from './pages/SettingsPage'
-import ChatPage from './pages/ChatPage'
+import { SettingsPage } from './pages/SettingsPage';
+import ChatPage from './pages/ChatPage';
 
 
 function App() {
@@ -22,18 +26,18 @@ function App() {
       <AuthProvider>
         <Routes>
             
-            {/* Public routes */}
+            <Route path="/" element={<Home />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} /> 
             <Route path="/oauth-success" element={<OAuthSuccess />} />
             
-            {/* Protected routes */}
             <Route element={
               <ProtectedRoute>
                 <Layout />
               </ProtectedRoute>
             }>
-            
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/members" element={<MembersPage />} />
@@ -41,8 +45,9 @@ function App() {
               <Route path="/board" element={<KanbanBoardPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/chat" element={<ChatPage />} />
-              
             </Route>
+
+            <Route path="*" element={<Navigate to="/" replace />} />
           
           </Routes>
       </AuthProvider>
@@ -50,4 +55,5 @@ function App() {
   );
 }
 
-export default App
+export default App;
+
