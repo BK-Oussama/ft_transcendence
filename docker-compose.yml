@@ -181,6 +181,7 @@ services:
       - ./services/dashboard/app/.env
     environment:
       - DATABASE_URL=postgresql://user:pass@dashboard-db:5432/dashboard_db?schema=public
+      # - PUBLIC_API_KEYS=${PUBLIC_API_KEYS}  
     networks:
       - transcendence-net
     depends_on:
