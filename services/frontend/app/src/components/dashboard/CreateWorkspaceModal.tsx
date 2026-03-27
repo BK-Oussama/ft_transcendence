@@ -24,10 +24,17 @@ const CreateWorkspaceModal = ({ isOpen, onClose, onSubmit }: CreateWorkspaceModa
     dueDate: '',
   });
 
+  const isFormDataValid = 
+      formData.title.trim() !== '' && 
+      formData.description.trim() !== '' && 
+      formData.dueDate !== '';
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!isFormDataValid) return;
+
     onSubmit(formData);
-    // Reset form
     setFormData({
       title: '',
       description: '',
@@ -148,17 +155,23 @@ const CreateWorkspaceModal = ({ isOpen, onClose, onSubmit }: CreateWorkspaceModa
             {/* Action Buttons */}
             <div className="flex items-center gap-3 pt-4">
                 <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 px-6 py-3.5 text-sm font-bold text-slate-500 hover:text-slate-700 hover:bg-slate-50 rounded-xl transition-all"
+                    type="button"
+                    onClick={onClose}
+                    className="flex-1 px-6 py-3.5 text-sm font-bold text-slate-500 hover:text-slate-700 hover:bg-slate-50 rounded-xl transition-all"
                 >
-                Discard
+                    Discard
                 </button>
                 <button
-                type="submit"
-                className="flex-[1.5] px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-blue-500/25 transition-all active:scale-[0.98]"
-                >
-                Create Workspace
+                    type="submit"
+                    disabled={!isFormDataValid}
+                    className={`
+                        flex-[1.5] px-6 py-3.5 text-sm font-bold rounded-xl transition-all 
+                        ${isFormDataValid 
+                          ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25 active:scale-[0.98]' 
+                          : 'bg-slate-200 text-slate-400 cursor-not-allowed'} 
+                      `}
+                    >
+                    Create Workspace
                 </button>
             </div>
             </form>

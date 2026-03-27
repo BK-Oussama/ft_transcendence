@@ -23,13 +23,11 @@ const MemberCard = ({ member, onDelete, onChangeRole, currentUserRole }: MemberC
     const { user } = useAuth();
     const isSelf = Number(user?.id) === member.id;
 
-    // const canEdit = currentUserRole === 'OWNER' || currentUserRole === 'ADMIN';
 
     const isTargetOwner = member.role.toUpperCase() === 'OWNER';
     const isUserOwner = currentUserRole?.toUpperCase() === 'OWNER';
     const isUserAdmin = currentUserRole?.toUpperCase() === 'ADMIN';
 
-    // const isMember = currentUserRole?.toUpperCase() == 'MEMBER'
     const canEdit = (isUserOwner || (isUserAdmin && !isTargetOwner)) && !isSelf;
 
     useEffect(() => {

@@ -15,6 +15,12 @@ import {
   StreamableFile,
   NotFoundException,
   Headers,
+  ParseFilePipe, 
+  MaxFileSizeValidator, 
+  FileTypeValidator, 
+  HttpStatus,
+  Res,
+  ForbiddenException,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TasksService } from './tasks.service';
@@ -83,7 +89,16 @@ export class TasksController {
   )
   async create(
     @Body() createTaskDto: CreateTaskDto,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile(
+      new ParseFilePipe({
+        fileIsRequired: false, 
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 500 * 1024 * 1024 }),
+          new FileTypeValidator({ fileType: '.(jpg|jpeg|png|pdf|docx|mp4|mov|webm)$' }),
+        ],
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      }),
+    ) file: Express.Multer.File,
     @Req() req: any,
     @Headers() headers: any
   ) {
@@ -136,5 +151,29 @@ export class TasksController {
   @Delete('project/:projectId')
   async cleanUpProjectTasks(@Param('projectId') projectId: string) {
     return this.tasksService.deleteAllTasksByProject(Number(projectId));
+  }
+
+  @Get('attachments/:fileName')
+  @UseGuards(JwtAuthGuard)
+  async downloadFile(
+    @Param('fileName') fileName: string,
+    @Req() req: any,
+    @Res() res: any,
+  ) {
+    const userId = req.user.id;
+
+    const isMember = await this.tasksService.checkFileAccess(fileName, userId);
+
+    if (!isMember) {
+      throw new ForbiddenException('You do not have permission to view this file');
+    }
+
+    const filePath = join(__dirname, '..', '..', 'uploads', fileName);
+
+    if (!existsSync(filePath)) {
+      throw new NotFoundException('File missing on server');
+    }
+
+    return res.sendFile(filePath);
   }
 }

@@ -1,5 +1,5 @@
 // import { Controller, Patch, Post, Body, Req, UseGuards, UploadedFile, UseInterceptors } from '@nestjs/common';
-import { Controller, Get, Patch, Post, Body, Req, UseGuards, UploadedFile, UseInterceptors, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Patch, Post, Body, Req, UseGuards, UploadedFile, UseInterceptors, Param, ParseIntPipe, Query } from '@nestjs/common';
 
 import { UsersService } from './users.service';
 import { UpdateProfileDto } from './dto/profile.dto';
@@ -13,6 +13,23 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
   @UseGuards(JwtAuthGuard)
+  @Get()
+  async searchUsers(
+    @Query('search') search?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortOrder') sortOrder?: 'asc' | 'desc',
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.usersService.searchUsers({
+        search,
+        sortBy,
+        sortOrder,
+        page: page ? parseInt(page, 10) : 1,
+        limit: limit ? parseInt(limit, 10) : 5
+    });
+  }
+
   @Patch('me')
   updateProfile(@Req() req, @Body() body: UpdateProfileDto) {
     return this.usersService.updateUserProfile(req.user.id, body);

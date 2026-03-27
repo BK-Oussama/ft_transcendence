@@ -64,6 +64,47 @@ export class UsersService {
         return { avatarUrl };
     }
 
+    async searchUsers(params: { search?: string, sortBy?: string, sortOrder?: 'asc'|'desc', page?: number, limit?: number }) {
+        const { search, sortBy = 'firstName', sortOrder = 'asc', page = 1, limit = 5 } = params;
+        const skip = (page - 1) * limit;
+
+        const where: any = search ? {
+            OR: [
+                { firstName: { contains: search, mode: 'insensitive' } },
+                { lastName: { contains: search, mode: 'insensitive' } },
+                { email: { contains: search, mode: 'insensitive' } }
+            ]
+        } : {};
+
+        const validSortFields = ['firstName', 'lastName', 'email', 'id'];
+        const actualSortBy = validSortFields.includes(sortBy) ? sortBy : 'firstName';
+
+        const users = await this.prisma.user.findMany({
+            where,
+            orderBy: { [actualSortBy]: sortOrder },
+            skip,
+            take: limit,
+            select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true }
+        });
+
+        const total = await this.prisma.user.count({ where });
+
+        return {
+            data: users.map(u => ({
+                id: u.id,
+                name: `${u.firstName || ''} ${u.lastName || ''}`.trim(),
+                email: u.email,
+                avatar: u.avatarUrl
+            })),
+            meta: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit) || 1
+            }
+        };
+    }
+
     // ouboukou: "Fetch basic profile info for the Chat Service identity sync"
     async findOne(id: number) {
         const user = await this.prisma.user.findUnique({

@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom';
-import { Bell, X } from 'lucide-react';
+import { Bell } from 'lucide-react';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 import { useEffect } from 'react';
@@ -45,9 +45,6 @@ export default function Layout() {
                                 {data.message}
                             </p>
                         </div>
-                        <button onClick={() => toast.dismiss(t.id)} className="p-1.5 text-slate-300 hover:text-slate-500 hover:bg-slate-50 rounded-lg transition-all">
-                            <X size={14} />
-                        </button>
                     </div>
                 </div>
             ), { id: 'global-task-update', position: 'top-left', duration: 3500 });

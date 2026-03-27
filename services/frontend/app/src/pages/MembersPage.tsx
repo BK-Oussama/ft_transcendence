@@ -20,16 +20,6 @@ const MembersPage = () => {
     const projectId = Number(new URLSearchParams(location.search).get('projectId')) || 1;
     const { user } = useAuth();
  
-    // const members: any[] = [];
-    // const isLoading = false;
-    // const error = null;
-
-    // const getUserRole = (project: Project): string | null => {
-    //     if (!user) return null;
-    //     const member = project.members.find(m => m.userId === Number(user.id));
-    //     return member?.role ?? null;
-    // };
-
     //FETCH members
     const {data: members = [], isLoading, error} = useQuery({
         queryKey: ['members', projectId],
@@ -58,57 +48,10 @@ const MembersPage = () => {
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['members', projectId] }),
     });
 
-    // // sample members data
-    // const [ members, setMembers ] = useState<Member[]>([
-    //     {
-    //         id: 1,
-    //         name: 'Sarah Smith',
-    //         email: 'sarah.smith@example.com',
-    //         role: 'owner',
-    //         joined_at: '2024-01-15',
-    //     },
-    //     {
-    //         id: 2,
-    //         name: 'John Doe',
-    //         email: 'john.doe@example.com',
-    //         role: 'admin',
-    //         joined_at: '2024-02-20',
-    //     },
-    //     {
-    //         id: 3,
-    //         name: 'Emily Johnson',
-    //         email: 'emily.j@example.com',
-    //         role: 'member',
-    //         joined_at: '2024-03-10',
-    //     },
-    //     {
-    //         id: 4,
-    //         name: 'Michael Brown',
-    //         email: 'michael.b@example.com',
-    //         role: 'member',
-    //         joined_at: '2024-03-15',
-    //     },
-    //     {
-    //         id: 5,
-    //         name: 'Lisa Anderson',
-    //         email: 'lisa.a@example.com',
-    //         role: 'viewer',
-    //         joined_at: '2024-03-18',
-    //     },
-    // ]);
 
     const handleAddMember = (userId: number) => {
-        // const newMember: Member = {
-        //     ...memberData,
-        //     id: members.length + 1,
-        //     joined_at: new Date().toISOString().split('T')[0],
-        // };
-        // // setMembers([...members, newMember]);
-        // console.log('New member added:', newMember);
-    
         const role = "MEMBER";
   
-        // ⚠️ TODO: remove this mock and uncomment the mutation below when backend is ready
         console.log(`Adding user ${userId} with role ${role}`);
         alert(`✅ Added user ${userId} as ${role}`);
     
@@ -116,7 +59,6 @@ const MembersPage = () => {
 
     const handleDeleteMemeber = (memberId: number) => {
         if (window.confirm('Are you sure you want to remove this member?')) {
-            // setMembers(members.filter((m) => m.id !== memberId));
             removeMutation.mutate(memberId);
             console.log('Member deleted:', memberId);
         }
@@ -185,14 +127,6 @@ const MembersPage = () => {
                 Manage your workspace members and their permissions
             </p>
             </div>
-            
-            {/* <button
-                onClick={() => setIsAddModalOpen(true)}
-                className="flex items-center gap-2 bg-blue-500 text-white px-5 py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium shadow-lg shadow-blue-500/30"
-            >
-                <UserPlus size={20} />
-                Add Member
-            </button> */}
 
             {canAddMember && (
                 <button
@@ -207,20 +141,6 @@ const MembersPage = () => {
 
         </div>
 
-        {/* Stats Cards */}
-        {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl p-5 shadow-lg">
-                <p className="text-blue-100 text-sm font-medium mb-1">Total Members</p>
-                <p className="text-3xl font-bold">{members.length}</p>
-            </div>
-            
-            <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl p-5 shadow-lg">
-                <p className="text-purple-100 text-sm font-medium mb-1">Admins</p>
-                <p className="text-3xl font-bold">
-                    {members.filter((m) => m.role === 'ADMIN' || m.role === 'OWNER').length}
-                </p>
-            </div>
-        </div> */}
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <div className="bg-white border border-gray-100 rounded-xl p-5">
