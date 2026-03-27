@@ -31,6 +31,7 @@ export class UsersController {
     });
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch('me')
   updateProfile(@Req() req, @Body() body: UpdateProfileDto) {
     console.log(`$(req.user.id)`);
