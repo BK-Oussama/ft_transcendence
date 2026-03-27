@@ -195,7 +195,7 @@ export class AuthService {
       where: { id },
       data: { refreshTokenHash: null },
     });
-    res.clearCookie('refreshToken', { path: '/auth/refresh' });
+    res.clearCookie('refreshToken', { path: '/' });
     return { ok: true };
   }
 

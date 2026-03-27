@@ -1,6 +1,6 @@
 import { createContext, useCallback, useEffect, useState } from 'react';
 import type { AuthContextType, User, LoginDto, RegisterDto } from '../types/auth.types';
-import { loginApi, registerApi, logoutApi, getMeApi, loginWithGoogleApi } from '../api/auth.api';
+import { loginApi, registerApi, logoutApi, getMeApi, loginWithGoogleApi, refreshApi } from '../api/auth.api';
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -14,19 +14,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const token = localStorage.getItem('access_token');
       if (!token) {
-        setIsAuthenticated(false);
-        setUser(null);
-        return;
+        // No access token — try a silent refresh first (refresh cookie may still be valid)
+        try {
+          await refreshApi();
+        } catch {
+          setIsAuthenticated(false);
+          setUser(null);
+          setLoading(false);
+          return;
+        }
       }
 
       const userData = await getMeApi();
       setUser(userData);
       setIsAuthenticated(true);
     } catch (error) {
-      console.error('Auth check failed:', error);
-      localStorage.removeItem('access_token');
-      setUser(null);
-      setIsAuthenticated(false);
+      // getMeApi failed (likely expired token) — try refreshing once
+      try {
+        await refreshApi();
+        const userData = await getMeApi();
+        setUser(userData);
+        setIsAuthenticated(true);
+      } catch {
+        console.error('Auth check failed:', error);
+        localStorage.removeItem('access_token');
+        setUser(null);
+        setIsAuthenticated(false);
+      }
     } finally {
       setLoading(false);
     }
