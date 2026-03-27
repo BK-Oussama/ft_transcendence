@@ -1,8 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as fs from 'fs';
 import * as path from 'path';
+import { PublicApiModule } from './public-api/public-api.module'
 
 async function bootstrap() {
 
@@ -25,6 +27,23 @@ async function bootstrap() {
     whitelist: true,
     transform: true,
   }));
+
+  // for the public api: 
+  // Swagger
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('Project Service API')
+    .setDescription('Public API for managing projects')
+    .setVersion('1.0')
+    .addApiKey(
+      { type: 'apiKey', in: 'header', name: 'X-API-Key' },
+      'ApiKeyAuth',
+    )
+    .build();
+
+  const document = SwaggerModule.createDocument(app, swaggerConfig, {
+      include: [PublicApiModule],
+  });
+  SwaggerModule.setup('api/docs', app, document);
 
   const port = process.env.PORT || 443;
   await app.listen(port);

@@ -11,12 +11,15 @@ import { PrismaService } from 'src/prisma/prisma.service';
   imports: [
     ProjectMembersModule,
     HttpModule.register({
+      // baseURL: 'https://boards:443',
       httpsAgent: new https.Agent({
         rejectUnauthorized: false,
       }),
+      // timeout: 5000,
     }),
   ],
   controllers: [ProjectsController],
   providers: [ProjectsService, PrismaService],
+  exports: [ProjectsService],
 })
 export class ProjectsModule {}
