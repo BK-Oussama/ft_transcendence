@@ -27,7 +27,7 @@ interface Task {
 interface NewTaskModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (task: any, file?: File) => void;
+  onSave: (task: any, file?: File, onProgress?: (p: number) => void) => Promise<void>;
   taskToEdit?: Task | null;
   defaultStatus: string;
   isReadOnly?: boolean;
@@ -52,6 +52,8 @@ export default function NewTaskModal({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [existingFile, setExistingFile] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const { data: members = [] } = useQuery({
     queryKey: ['members', projectId],
@@ -88,11 +90,14 @@ export default function NewTaskModal({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
+    setIsUploading(true);
+    setUploadProgress(0);
 
-    onSave(
+    try {
+      await onSave(
       {
         id: taskToEdit?.id,
         title,
@@ -102,11 +107,18 @@ export default function NewTaskModal({
         assignedTo,
         startDate,
         dueDate,
+        attachmentUrl: existingFile ? existingFile : null,
       },
       selectedFile || undefined,
+      (progress) => setUploadProgress(progress)
     );
 
     onClose();
+  } catch (error) {
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+    }
   };
 
   const handleFileClick = () => {
@@ -504,40 +516,94 @@ export default function NewTaskModal({
             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
           )}
           <div
-            onClick={isReadOnly ? handleFileClick : undefined}
+            onClick={isReadOnly && !isUploading ? handleFileClick : undefined}
             className={`border border-dashed rounded-xl p-4 flex items-center justify-center gap-2 transition-colors
               ${selectedFile || existingFile ? 'bg-blue-50 border-blue-200 text-blue-600' : 'border-slate-200 text-slate-400'}
-              ${isReadOnly ? 'hover:bg-slate-50 cursor-pointer' : 'cursor-default opacity-70'}`}
+              ${isReadOnly && !isUploading ? 'hover:bg-slate-50 cursor-pointer' : 'cursor-default opacity-70'}`}
           >
             <Paperclip size={15} />
             <span className="text-sm font-medium">
               {selectedFile ? selectedFile.name : existingFile ? existingFile : isReadOnly ? 'Click to attach a file' : 'No attachments'}
             </span>
           </div>
-          {!selectedFile && existingFile && (
-            <div className="mt-2 text-xs text-right">
-              <a href={`https://localhost:8444/uploads/${existingFile}`} target="_blank" rel="noreferrer" className="text-blue-500 hover:underline">
+
+          {isUploading && uploadProgress > 0 && (
+            <div className="mt-3 animate-in fade-in slide-in-from-top-1">
+              <div className="flex justify-between items-center mb-1.5">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                  Uploading File...
+                </span>
+                <span className="text-xs font-bold text-blue-600">{uploadProgress}%</span>
+              </div>
+              <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-200 ease-out"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {!selectedFile && existingFile && !isUploading && (
+            <div className="mt-2 flex items-center justify-end gap-3 text-xs">
+              {isReadOnly && (
+                <>
+                  <button 
+                    type="button" 
+                    onClick={() => setExistingFile(null)} 
+                    className="text-red-500 hover:text-red-700 font-bold transition-colors"
+                  >
+                    Delete File
+                  </button>
+                  <span className="text-slate-300">|</span>
+                </>
+              )}
+              <a 
+                href={`https://localhost:8444/uploads/${existingFile}`} 
+                target="_blank" 
+                rel="noreferrer" 
+                className="text-blue-500 hover:text-blue-700 font-bold transition-colors"
+              >
                 View / Download
               </a>
             </div>
           )}
+
+          {selectedFile && !isUploading && (
+            <div className="mt-2 text-xs text-right">
+              <button 
+                type="button" 
+                onClick={() => setSelectedFile(null)} 
+                className="text-red-500 hover:text-red-700 font-bold transition-colors"
+              >
+                Remove Selection
+              </button>
+            </div>
+          )}
+
         </div>
 
         {/* Actions */}
         {isReadOnly && (
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-50">
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-50 mt-6">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 rounded-xl text-slate-500 font-bold hover:bg-slate-50 hover:text-slate-700 transition-colors text-sm"
+              disabled={isUploading}
+              className={`px-5 py-2.5 rounded-xl font-bold transition-colors text-sm
+                ${isUploading ? 'text-slate-400 opacity-50 cursor-not-allowed' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}
+              `}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-6 py-2.5 rounded-xl hover:from-blue-600 hover:to-indigo-600 transition-all font-bold text-sm shadow-lg shadow-blue-500/25 hover:-translate-y-0.5 active:translate-y-0"
+              disabled={isUploading}
+              className={`flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-6 py-2.5 rounded-xl transition-all font-bold text-sm shadow-lg shadow-blue-500/25
+                ${isUploading ? 'opacity-70 cursor-wait' : 'hover:from-blue-600 hover:to-indigo-600 hover:-translate-y-0.5 active:translate-y-0'}
+              `}
             >
-              {taskToEdit ? 'Save Changes' : 'Create Task'}
+              {isUploading ? 'Saving...' : (taskToEdit ? 'Save Changes' : 'Create Task')}
             </button>
           </div>
         )}

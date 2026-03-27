@@ -628,10 +628,10 @@ export default function BoardPage() {
     setIsModalOpen(true);
   };
 
-  const handleSaveTask = async (taskData: Partial<Task>, file?: File) => {
+  const handleSaveTask = async (taskData: Partial<Task>, file?: File, onProgress?: (progress: number) => void) => {
     try {
       let dataToSend: any;
-      let config = {};
+      let config: any = {};
 
       if (file) {
         const formData = new FormData();
@@ -648,7 +648,16 @@ export default function BoardPage() {
         if (taskData.dueDate) formData.append("dueDate", taskData.dueDate);
         formData.append("file", file);
         dataToSend = formData;
-        config = { headers: { "Content-Type": "multipart/form-data" } };
+        config = { 
+          headers: { "Content-Type": "multipart/form-data" },
+          onUploadProgress: (progressEvent: any) => {
+            if (progressEvent.total) {
+              const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+              if (onProgress) onProgress(percentCompleted);
+            }
+          }
+        };
+        // config = { headers: { "Content-Type": "multipart/form-data" } };
       } else {
         dataToSend = {
           title: taskData.title,
@@ -660,6 +669,7 @@ export default function BoardPage() {
           assignedTo: taskData.assignedTo ? Number(taskData.assignedTo) : null,
           startDate: taskData.startDate || undefined,
           dueDate: taskData.dueDate || undefined,
+          attachmentUrl: taskData.attachmentUrl,
         };
         config = { headers: { "Content-Type": "application/json" } };
       }
@@ -674,11 +684,11 @@ export default function BoardPage() {
       } else {
         await api.post("/tasks/", dataToSend, config);
       }
+      fetchTasks();
       setIsModalOpen(false);
       setEditingTask(null);
-      fetchTasks();
     } catch (error) {
-      console.error("Error saving task:", error);
+      toast.error("Something went wrong. Please try again.");
       toast.error("Something went wrong. Please try again.");
     }
   };
@@ -855,14 +865,6 @@ export default function BoardPage() {
         </DragDropContext>
       </div>
 
-      {/* <NewTaskModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSave={handleSaveTask}
-        taskToEdit={editingTask}
-        defaultStatus={activeStatus}
-        isReadOnly={canEdit}
-      /> */}
       <NewTaskModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
