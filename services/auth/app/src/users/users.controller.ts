@@ -33,6 +33,7 @@ export class UsersController {
 
   @Patch('me')
   updateProfile(@Req() req, @Body() body: UpdateProfileDto) {
+    console.log(`$(req.user.id)`);
     return this.usersService.updateUserProfile(req.user.id, body);
   }
 
