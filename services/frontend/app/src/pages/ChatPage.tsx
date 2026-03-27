@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useChat } from '../hooks/useChat';
 import { useAuth } from '../hooks/useAuth';
 import { chatApi } from '../api/chat.api';
@@ -7,8 +8,9 @@ import toast from 'react-hot-toast';
 
 const ChatPage = () => {
   const { user: currentUser } = useAuth();
+  const navigate = useNavigate();
   const token = localStorage.getItem('access_token');
-  const { messages, sendMessage, connected, socket } = useChat(token);
+  const { messages, sendMessage, socket } = useChat(token);
   const [input, setInput] = useState('');
   
   const [relationships, setRelationships] = useState<Relationship[]>([]);
@@ -24,14 +26,18 @@ const ChatPage = () => {
   }, [socket]);
 
   useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
   }, [messages, relationships]);
 
   const fetchRelationships = async () => {
     try {
       const data = await chatApi.getRelationships();
       setRelationships(data);
-    } catch (err) { console.error("Social sync failed"); }
+    } catch (err) {
+      console.error("Social sync failed");
+    }
   };
 
   const handleAction = async (targetId: number, action: string) => {
@@ -46,7 +52,9 @@ const ChatPage = () => {
       fetchRelationships();
       setActivePopover(null);
       socket?.emit('refresh_social', { targetId }); 
-    } catch (err) { toast.error("Action failed"); }
+    } catch (err) {
+      toast.error("Action failed");
+    }
   };
 
   const handleSend = (e: React.FormEvent) => {
@@ -78,7 +86,7 @@ const ChatPage = () => {
             const isFriend = friends.some(f => f.userId === msg.senderId || f.friendId === msg.senderId);
             const displayName = isOwn ? `${currentUser?.firstName} ${currentUser?.lastName}` : msg.senderName;
             
-            // Cache Buster Logic: Ensure avatars refresh when users change their photo
+            // Cache busting for avatars
             const avatarUrl = isOwn 
               ? (currentUser?.avatarUrl ? `${currentUser.avatarUrl}?t=${new Date().getTime()}` : null)
               : (msg.senderAvatar ? `${msg.senderAvatar}?t=${new Date(msg.createdAt).getTime()}` : null);
@@ -93,9 +101,21 @@ const ChatPage = () => {
                     alt="avatar"
                   />
                   {activePopover === msg.id && (
-                    <div className={`absolute z-50 bottom-full mb-3 w-36 bg-white rounded-2xl shadow-2xl border p-1.5 flex flex-col gap-1 ${isOwn ? 'right-0' : 'left-0'}`}>
-                      {!isFriend && <button onClick={() => handleAction(msg.senderId, 'PENDING')} className="text-[11px] font-bold text-left px-4 py-2.5 hover:bg-blue-50 text-blue-600 rounded-xl">Add Friend</button>}
-                      <button onClick={() => handleAction(msg.senderId, 'BLOCKED')} className="text-[11px] font-bold text-left px-4 py-2.5 hover:bg-red-50 text-red-600 rounded-xl">Block User</button>
+                    <div className={`absolute z-50 bottom-full mb-3 w-40 bg-white rounded-2xl shadow-2xl border p-1.5 flex flex-col gap-1 ${isOwn ? 'right-0' : 'left-0'}`}>
+                      <button 
+                        onClick={() => navigate(`/profile/${msg.senderId}`)} 
+                        className="text-[11px] font-bold text-left px-4 py-2.5 hover:bg-gray-50 text-gray-700 rounded-xl transition-colors"
+                      >
+                        View Profile
+                      </button>
+                      {!isFriend && (
+                        <button onClick={() => handleAction(msg.senderId, 'PENDING')} className="text-[11px] font-bold text-left px-4 py-2.5 hover:bg-blue-50 text-blue-600 rounded-xl">
+                          Add Friend
+                        </button>
+                      )}
+                      <button onClick={() => handleAction(msg.senderId, 'BLOCKED')} className="text-[11px] font-bold text-left px-4 py-2.5 hover:bg-red-50 text-red-600 rounded-xl">
+                        Block User
+                      </button>
                     </div>
                   )}
                 </div>

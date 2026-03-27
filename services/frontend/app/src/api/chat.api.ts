@@ -41,4 +41,9 @@ export const chatApi = {
     const res = await api.post(`/chat/unblock/${id}`);
     return res.data;
   },
+
+  getUserProfile: async (id: number) => {
+    const res = await api.get(`/chat/profile/${id}`);
+    return res.data;
+  },
 };

@@ -70,5 +70,4 @@ async getHistory(@Req() req) {
     return this.chatService.getUserProfile(id, token);
   }
 
-
 }

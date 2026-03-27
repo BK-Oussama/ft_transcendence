@@ -68,14 +68,40 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
+  // const logout = useCallback(async () => {
+  //   try {
+  //     await logoutApi();
+  //     setUser(null);
+  //     setIsAuthenticated(false);
+  //   } catch (error) {
+  //     console.error('Logout failed:', error);
+  //     throw error;
+  //   }
+  // }, []);
+
+  // services/frontend/app/src/context/AuthContext.tsx
+
   const logout = useCallback(async () => {
     try {
+      // We attempt to tell the server we're leaving
       await logoutApi();
+    } catch (error) {
+      // We log it as a warning, but we don't 'throw' it.
+      // This prevents the UI from thinking the logout "failed".
+      console.warn('Server-side session cleanup skipped (User likely deleted or session expired).');
+    } finally {
+      // 🟢 This block runs REGARDLESS of success or failure
+      localStorage.removeItem("access_token");
       setUser(null);
       setIsAuthenticated(false);
-    } catch (error) {
-      console.error('Logout failed:', error);
-      throw error;
+
+      /**
+       * Pro-tip for 42 School projects: 
+       * Using window.location.href = "/login" here is a "Hard Reset".
+       * It forcefully kills lingering WebSockets and clears the React 
+       * state completely, preventing "Ghost User" messages in the chat.
+       */
+      window.location.href = "/login";
     }
   }, []);
 

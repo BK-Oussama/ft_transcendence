@@ -1,5 +1,5 @@
 // import { Controller, Patch, Post, Body, Req, UseGuards, UploadedFile, UseInterceptors } from '@nestjs/common';
-import { Controller, Get, Patch, Post, Body, Req, UseGuards, UploadedFile, UseInterceptors, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Delete, Get, Patch, Post, Body, Req, UseGuards, UploadedFile, UseInterceptors, Param, ParseIntPipe } from '@nestjs/common';
 
 import { UsersService } from './users.service';
 import { UpdateProfileDto } from './dto/profile.dto';
@@ -37,10 +37,25 @@ export class UsersController {
     return this.usersService.updateUserPassword(req.user.id, body);
   }
 
+
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  getMe(@Req() req) {
+    return this.usersService.findOne(req.user.id);
+  }
+
+  // 🔴 New: The GDPR deletion endpoint
+  @UseGuards(JwtAuthGuard)
+  @Delete('me')
+  async deleteMe(@Req() req) {
+    return this.usersService.deleteUser(req.user.id);
+  }
+  
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.findOne(id);
   }
 
+  
 
 }
