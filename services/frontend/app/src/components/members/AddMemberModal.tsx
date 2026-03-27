@@ -35,6 +35,7 @@ const AddMemberModal = ({ isOpen, onClose, projectId, existingMemberIds }: AddMe
         },
     });
 
+
     useEffect(() => {
         setAddedUsers([]);
     }, [existingMemberIds]);
@@ -136,15 +137,31 @@ const AddMemberModal = ({ isOpen, onClose, projectId, existingMemberIds }: AddMe
                     users.map((user) => (
                         <div
                         key={user.id}
-                        className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors"
+  className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors"
                         >
                         {/* Avatar */}
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shrink-0">
-                            {user.avatar
-                            ? <img src={user.avatar} className="w-full h-full rounded-xl object-cover" />
-                            : getInitials(user.name)
-                            }
+
+
+                        {/* Avatar */}
+
+
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm">
+                            {user.avatar ? (
+                                <img 
+                                    src={`https://localhost${user.avatar}`} 
+                                    alt={user.name} 
+                                    className="w-full h-full rounded-xl object-cover" 
+                                />
+                            ) : (
+                                getInitials(user.name)
+                            )}
                         </div>
+
+                        
+
+
+
+
 
                         {/* Info */}
                         <div className="flex-1 min-w-0">

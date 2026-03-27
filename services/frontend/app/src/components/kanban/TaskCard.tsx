@@ -234,13 +234,13 @@ export default function TaskCard({
     ? members.find(m => m.userId === assignedTo)
     : null;
 
-    const userName = assignedMember?.user?.name ?? null;
-    const initials = userName
-      ? userName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
-      : '?';
-    const color = assignedTo ? COLORS[assignedTo % COLORS.length] : '';
-    const rawAvatar = assignedMember?.user?.avatar || assignedMember?.user?.avatarUrl;
-    const assignedAvatarUrl = rawAvatar ? `https://localhost${rawAvatar}` : null;
+  const userName = assignedMember?.user?.name ?? null;
+  const initials = userName
+    ? userName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
+    : '?';
+  const color = assignedTo ? COLORS[assignedTo % COLORS.length] : '';
+  const rawAvatar = assignedMember?.user?.avatar || assignedMember?.user?.avatarUrl;
+  const assignedAvatarUrl = rawAvatar ? `https://localhost${rawAvatar}` : null;
 
   return (
     <Draggable draggableId={id.toString()} index={index} isDragDisabled={!canDrag}>

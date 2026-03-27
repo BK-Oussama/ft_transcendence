@@ -8,6 +8,8 @@ import { TasksController } from './tasks/tasks.controller';
 import { TasksService } from './tasks/tasks.service';
 import { TasksGateway } from './tasks/tasks.gateway';
 import { JwtStrategy } from './auth/jwt.strategy';
+import { HttpModule } from '@nestjs/axios';
+
 
 @Module({
   imports: [
@@ -16,6 +18,7 @@ import { JwtStrategy } from './auth/jwt.strategy';
       rootPath: join(__dirname, '..', 'uploads'),
       serveRoot: '/uploads',
     }),
+    HttpModule
   ],
   controllers: [AppController, TasksController],
   providers: [AppService, TasksService, TasksGateway, JwtStrategy],
