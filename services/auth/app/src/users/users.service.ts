@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, ConflictException, BadRequestException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { UpdateProfileDto } from './dto/profile.dto';
 import { UpdateEmailDto } from './dto/updateEmail.dto';
 import { UpdatePasswordDto } from './dto/updatePassword.dto';
@@ -109,9 +109,33 @@ export class UsersService {
     async findOne(id: number) {
         const user = await this.prisma.user.findUnique({
             where: { id },
-            select: { id: true, firstName: true, lastName: true, avatarUrl: true },
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                avatarUrl: true,
+                bio: true,       // 👈 Added
+                jobTitle: true,  // 👈 Added
+                createdAt: true  // 👈 Added for "Member since" info
+            },
         });
         if (!user) throw new BadRequestException('User not found');
         return user;
+    }
+    // 🔴 New: Deletes the user record (GDPR "Right to be Forgotten")
+
+
+    async deleteUser(id: number) {
+        try {
+            // Explicitly cast to Number to prevent Prisma type errors
+            const userId = Number(id);
+
+            return await this.prisma.user.delete({
+                where: { id: userId },
+            });
+        } catch (error) {
+            console.error('❌ Deletion Error:', error.message);
+            throw new InternalServerErrorException('Failed to delete user account');
+        }
     }
 }

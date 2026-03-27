@@ -43,3 +43,9 @@ export const getMeApi = async (): Promise<User> => {
   const res = await api.get<User>("/auth/me");
   return res.data;
 };
+
+
+export const deleteAccountApi = async () => {
+  const res = await api.delete("/auth/users/me");
+  return res.data;
+};
