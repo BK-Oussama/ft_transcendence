@@ -271,6 +271,9 @@ useEffect(() => {
       path: '/api/socket.io/', 
       transports: ["websocket"],
       secure: true,
+      upgrade: true, 
+      rememberUpgrade: true,
+      reconnectionAttempts: 10,
     });
 
     const refreshSidebarStats = () => {

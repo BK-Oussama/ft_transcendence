@@ -14,6 +14,7 @@ import {
   Query,
   StreamableFile,
   NotFoundException,
+  Headers,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TasksService } from './tasks.service';
@@ -83,13 +84,14 @@ export class TasksController {
   async create(
     @Body() createTaskDto: CreateTaskDto,
     @UploadedFile() file: Express.Multer.File,
-    @Req() req: any
+    @Req() req: any,
+    @Headers() headers: any
   ) {
     if (file) {
       (createTaskDto as any).attachment_url = file.filename;
     }
     const realUserId = req.user.id;
-    const task = await this.tasksService.create(createTaskDto, realUserId);
+    const task = await this.tasksService.create(createTaskDto, realUserId, headers);
     this.tasksGateway.broadcastTaskCreated(task);
     return task;
   }
