@@ -159,7 +159,7 @@ export class ProjectsService {
     async searchUsers(search: string, token: string) {
         const { data } = await firstValueFrom(
             this.httpService.get<any>(`https://auth/users/search?search=${search}`, {
-            headers: { Authorization: `Bearer ${token}` },
+                headers: { Authorization: `Bearer ${token}` },
             })
         );
         return data.map((user: any) => ({

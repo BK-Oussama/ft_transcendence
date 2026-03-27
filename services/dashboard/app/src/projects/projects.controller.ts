@@ -40,6 +40,17 @@ export class ProjectsController {
         return this.projectsService.findAll(userId, token);
     }
 
+    // for internal call to the auth service
+    @Get('users/search')
+    @UseGuards(JwtAuthGuard)
+    async searchUsers(
+        @Query('search') search: string,
+        @Headers('authorization') authorization: string,
+    ) {
+        const token = authorization?.replace('Bearer ', '');
+        return this.projectsService.searchUsers(search, token);
+    }
+
     @Get(':id')
     findOne(@Param('id', ParseIntPipe) id: number) {
         return this.projectsService.findOne(id);

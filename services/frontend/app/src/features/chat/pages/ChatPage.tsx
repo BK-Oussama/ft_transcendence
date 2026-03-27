@@ -2,20 +2,55 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useChat } from '../hooks/useChat';
 import { useAuth } from '../../../hooks/useAuth';
 import { chatApi } from '../../../api/chat.api';
+import type { Relationship } from '../../../api/chat.api';
 import toast from 'react-hot-toast';
 
 const ChatPage = () => {
   const { user: currentUser } = useAuth();
   const token = localStorage.getItem('access_token');
-  const { messages, sendMessage, connected } = useChat(token);
+  const { messages, sendMessage, connected, socket } = useChat(token);
   const [input, setInput] = useState('');
+  
+  const [relationships, setRelationships] = useState<Relationship[]>([]);
+  const [activePopover, setActivePopover] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  useEffect(() => { 
+    fetchRelationships();
+    // ouboukou: "Listen for the poke from the server to refresh sidebar instantly"
+    if (socket) {
+      socket.on('social_update', fetchRelationships);
+      return () => { socket.off('social_update'); };
     }
-  }, [messages]);
+  }, [socket]);
+
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [messages, relationships]);
+
+  const fetchRelationships = async () => {
+    try {
+      const data = await chatApi.getRelationships();
+      setRelationships(data);
+    } catch (err) { console.error("Social sync failed"); }
+  };
+
+  const handleAction = async (targetId: number, action: string) => {
+    try {
+      if (action === 'UNBLOCK' || action === 'IGNORE') {
+        await chatApi.unblockUser(targetId);
+        toast.success(action === 'IGNORE' ? 'Request Dismissed' : 'User Unblocked');
+      } else {
+        await chatApi.setRelationship(targetId, action);
+        toast.success(`User ${action.toLowerCase()}`);
+      }
+      fetchRelationships();
+      setActivePopover(null);
+      
+      // ouboukou: "Tell the server to notify the other user to refresh"
+      socket?.emit('refresh_social', { targetId }); 
+    } catch (err) { toast.error("Action failed"); }
+  };
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,80 +59,119 @@ const ChatPage = () => {
     setInput('');
   };
 
+  const visibleMessages = messages.filter(msg => {
+    if (msg.senderId === currentUser?.id) return true;
+    return !relationships.some(r => r.status === 'BLOCKED' && (r.friendId === msg.senderId || r.userId === msg.senderId));
+  });
+
+  const friends = relationships.filter(r => r.status === 'FRIEND');
+  const blocked = relationships.filter(r => r.status === 'BLOCKED');
+  const incomingRequests = relationships.filter(r => r.status === 'PENDING' && r.friendId === currentUser?.id);
+
   return (
-    <div className="flex flex-col h-full bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-white/80 backdrop-blur-sm z-10">
-        <div>
-          <h1 className="text-xl font-bold text-gray-800">Global Chat</h1>
-          <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wider">Public Channel</p>
+    <div className="flex h-full bg-[#f4f7f6] gap-4 p-4 font-sans overflow-hidden">
+      <div className="flex-1 flex flex-col bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden relative">
+        <div className="px-8 py-5 border-b border-gray-50 flex justify-between items-center bg-white/50 backdrop-blur-md z-10">
+          <h1 className="text-lg font-black text-gray-800 tracking-tight">Global Channel</h1>
         </div>
-        <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">
-          <div className={`w-2 h-2 rounded-full ${connected ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]' : 'bg-red-500'}`} />
-          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-tight">{connected ? 'Live' : 'Offline'}</span>
-        </div>
-      </div>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#fbfcfe]">
-        {messages.map((msg) => {
-          const isOwn = msg.senderId === currentUser?.id;
-
-          // ouboukou: "Replaced 'You' logic. If it's your own message, we use the LIVE name from your AuthContext."
-          const displayName = isOwn 
-            ? (currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'You')
-            : msg.senderName;
-
-          // ouboukou: "Live Avatar Update: For your own messages, use the avatarUrl from AuthContext instead of the stored one."
-          const avatarUrl = (isOwn && currentUser?.avatarUrl)
-            ? `${currentUser.avatarUrl}?t=${new Date().getTime()}`
-            : msg.senderAvatar
-              ? `${msg.senderAvatar}?t=${new Date(msg.createdAt).getTime()}`
-              : `https://api.dicebear.com/7.x/initials/svg?seed=${displayName}`;
-
-          const fallbackAvatar = `https://api.dicebear.com/7.x/initials/svg?seed=${displayName}`;
-
-          return (
-            <div key={msg.id} className={`group flex gap-3 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
-              <img
-                src={avatarUrl}
-                className="w-10 h-10 rounded-full border border-gray-200 bg-white object-cover shadow-sm transition-transform group-hover:scale-105"
-                alt="avatar"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  if (target.src !== fallbackAvatar) {
-                    target.src = fallbackAvatar;
-                  }
-                }}
-              />
-              <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'} max-w-[70%]`}>
-                <div className="flex items-center gap-2 mb-1 px-1">
-                  {/* ouboukou: "Display the actual name variable instead of the hardcoded 'You' string." */}
-                  <span className="text-[11px] font-bold text-gray-600 uppercase">
-                    {displayName}
-                  </span>
-                  <span className="text-[9px] text-gray-400">{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-8 space-y-8 bg-[#fdfdfd]">
+          {visibleMessages.map((msg) => {
+            const isOwn = msg.senderId === currentUser?.id;
+            const isFriend = friends.some(f => f.userId === msg.senderId || f.friendId === msg.senderId);
+            const displayName = isOwn ? `${currentUser?.firstName} ${currentUser?.lastName}` : msg.senderName;
+            
+            return (
+              <div key={msg.id} className={`group flex gap-4 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
+                <div className="relative flex-shrink-0">
+                  <img
+                    src={msg.senderAvatar || `https://api.dicebear.com/7.x/initials/svg?seed=${displayName}`}
+                    className="w-11 h-11 rounded-2xl border border-gray-100 bg-white object-cover shadow-sm cursor-pointer hover:rotate-3 transition-all"
+                    onClick={() => !isOwn && setActivePopover(activePopover === msg.id ? null : msg.id)}
+                    alt="avatar"
+                  />
+                  {activePopover === msg.id && (
+                    <div className={`absolute z-50 bottom-full mb-3 w-36 bg-white rounded-2xl shadow-2xl border p-1.5 flex flex-col gap-1 ${isOwn ? 'right-0' : 'left-0'}`}>
+                      {!isFriend && <button onClick={() => handleAction(msg.senderId, 'PENDING')} className="text-[11px] font-bold text-left px-4 py-2.5 hover:bg-blue-50 text-blue-600 rounded-xl">Add Friend</button>}
+                      <button onClick={() => handleAction(msg.senderId, 'BLOCKED')} className="text-[11px] font-bold text-left px-4 py-2.5 hover:bg-red-50 text-red-600 rounded-xl">Block User</button>
+                    </div>
+                  )}
                 </div>
-                <div className={`px-4 py-2.5 rounded-2xl shadow-sm text-sm ${isOwn ? 'bg-[#3b82f6] text-white rounded-tr-none' : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none'}`}>
-                  {msg.content}
+                <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'} max-w-[65%]`}>
+                  <div className="flex items-center gap-2 mb-1.5 px-1">
+                    <span className="text-[11px] font-black text-gray-500 uppercase tracking-wide">{displayName}</span>
+                    {isFriend && <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />}
+                  </div>
+                  <div className={`px-5 py-3 rounded-2xl text-sm leading-relaxed shadow-sm ${isOwn ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-white text-gray-700 border border-gray-100 rounded-tl-none'}`}>
+                    {msg.content}
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
+
+        <form onSubmit={handleSend} className="p-6 bg-white border-t border-gray-50 flex gap-4 items-center">
+          <input
+            type="text"
+            className="flex-1 bg-gray-50 border border-transparent rounded-2xl px-6 py-4 text-sm focus:bg-white focus:border-blue-100 outline-none transition-all"
+            placeholder="Type your message..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            autoComplete="off"
+          />
+          <button type="submit" disabled={!input.trim()} className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all">Send</button>
+        </form>
       </div>
 
-      <form onSubmit={handleSend} className="p-4 bg-white border-t border-gray-100 flex gap-3 items-center">
-        <input
-          type="text"
-          className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all placeholder:text-gray-400"
-          placeholder="Type your message..."
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          autoComplete="off"
-        />
-        <button type="submit" disabled={!input.trim() || !connected} className="bg-[#3b82f6] text-white p-3 rounded-xl hover:bg-blue-600 active:scale-95 transition-all disabled:opacity-30 disabled:grayscale flex-shrink-0 shadow-lg shadow-blue-500/20">
-          <svg className="w-5 h-5 rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
-        </button>
-      </form>
+      <div className="w-80 flex flex-col gap-4">
+        {incomingRequests.length > 0 && (
+          <div className="bg-blue-600 rounded-3xl shadow-lg p-5">
+            <h2 className="text-[10px] font-black text-blue-100 uppercase tracking-[0.2em] mb-4">New Requests</h2>
+            <div className="space-y-3">
+              {incomingRequests.map(req => (
+                <div key={req.id} className="flex items-center justify-between bg-white/10 p-2 rounded-2xl">
+                  <div className="flex items-center gap-2">
+                    <img src={req.targetAvatar || `https://api.dicebear.com/7.x/initials/svg?seed=${req.targetName}`} className="w-6 h-6 rounded-full object-cover bg-white/20" alt="" />
+                    <span className="text-xs font-bold text-white truncate max-w-[80px]">{req.targetName}</span>
+                  </div>
+                  <div className="flex gap-1">
+                    <button onClick={() => handleAction(req.userId, 'FRIEND')} className="bg-white text-blue-600 text-[9px] px-2 py-1 rounded-lg font-black">Accept</button>
+                    <button onClick={() => handleAction(req.userId, 'IGNORE')} className="bg-transparent text-white/60 text-[9px] px-2 py-1 rounded-lg">Ignore</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-5 flex-1 overflow-hidden flex flex-col">
+          <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Friends</h2>
+          <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar">
+            {friends.map(f => (
+              <div key={f.id} className="flex items-center gap-3 p-2 rounded-2xl hover:bg-gray-50">
+                <img src={f.targetAvatar || `https://api.dicebear.com/7.x/initials/svg?seed=${f.targetName}`} className="w-10 h-10 rounded-full object-cover border border-gray-100 shadow-sm" alt="" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-gray-800 truncate capitalize">{f.targetName}</p>
+                  <p className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Friend</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-5 h-48">
+          <h2 className="text-[10px] font-black text-red-400 uppercase tracking-[0.2em] mb-4">Restricted</h2>
+          <div className="space-y-3 overflow-y-auto pr-2">
+            {blocked.map(b => (
+              <div key={b.id} className="flex items-center justify-between group">
+                <span className="text-xs font-medium text-gray-500 truncate">{b.targetName}</span>
+                <button onClick={() => handleAction(b.userId === currentUser?.id ? b.friendId : b.userId, 'UNBLOCK')} className="opacity-0 group-hover:opacity-100 text-[10px] text-blue-500 font-bold">Unblock</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

@@ -20,8 +20,11 @@ export class AppController {
   health() { return { status: 'ok' }; }
 
   @UseGuards(JwtAuthGuard)
-  @Get('history')
-  getHistory() { return this.chatService.getHistory(); }
+@Get('history')
+async getHistory(@Req() req) {
+  const token = req.headers.authorization?.split(' ')[1];
+  return this.chatService.getHistory(token);
+}
 
   // FIX: Read status from Body to support BLOCKED or FRIEND
   @UseGuards(JwtAuthGuard)
@@ -39,25 +42,33 @@ export class AppController {
 
     return this.chatService.setRelationship(userId, friendId, finalStatus);
   }
+  @UseGuards(JwtAuthGuard)
+  @Get('relationships')
+  async getRelationships(@Req() req) {
+    const token = req.headers.authorization?.split(' ')[1];
+    return this.chatService.getRelationships(req.user.id, token);
+    
+  }
 
   @UseGuards(JwtAuthGuard)
   @Get('blocks')
-  async getBlocks(@Req() req) {
-    const userId = req.user.sub || req.user.id;
-    return this.chatService.getBlockedUsers(userId);
-  }
+  async getBlockedUsers(@Req() req) {
+  const token = req.headers.authorization?.split(' ')[1];
+  return this.chatService.getRelationships(req.user.id, token);
+}
 
   @UseGuards(JwtAuthGuard)
   @Post('unblock/:id')
   async unblock(@Req() req, @Param('id', ParseIntPipe) id: number) {
-    const userId = req.user.sub || req.user.id;
-    return this.chatService.unblockUser(userId, id);
+    return this.chatService.unblockUser(req.user.id, id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('profile/:id')
-  getProfile(@Param('id', ParseIntPipe) id: number, @Headers('authorization') auth: string) {
-    const token = auth.split(' ')[1];
+  async getProfile(@Param('id', ParseIntPipe) id: number, @Req() req) {
+    const token = req.headers.authorization?.split(' ')[1];
     return this.chatService.getUserProfile(id, token);
   }
+
+
 }
