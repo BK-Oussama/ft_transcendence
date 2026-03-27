@@ -72,9 +72,6 @@ const EditWorkspaceModal = ({ isOpen, onClose, onSubmit, project, readOnly = fal
                                 <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Owner</p>
                             </div>
                             <div className="flex items-center gap-2">
-                                <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center text-white text-[10px] font-bold">
-                                    {project?.owner?.name?.[0] ?? '?'}
-                                </div>
                                 <p className="text-sm font-semibold text-slate-700">{project?.owner?.name ?? 'Unknown'}</p>
                             </div>
                         </div>

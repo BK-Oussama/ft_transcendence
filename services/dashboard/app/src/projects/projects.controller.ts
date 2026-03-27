@@ -73,4 +73,15 @@ export class ProjectsController {
     async remove(@Param('id', ParseIntPipe) id: number) {
         return this.projectsService.remove(id);
     }
+
+    // for internal call to the auth service
+    // @Get('users/search')
+    // @UseGuards(JwtAuthGuard)
+    // async searchUsers(
+    //     @Query('search') search: string,
+    //     @Headers('authorization') authorization: string,
+    // ) {
+    //     const token = authorization?.replace('Bearer ', '');
+    //     return this.projectsService.searchUsers(search, token);
+    // }
 }

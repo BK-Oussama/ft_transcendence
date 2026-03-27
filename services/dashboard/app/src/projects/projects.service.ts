@@ -144,13 +144,15 @@ export class ProjectsService {
         });
     }
 
-    // delete project
     async remove(projectId: number) {
-        // check is exists
-        await this.findOne(projectId);
+      await this.findOne(projectId);
+
+      await firstValueFrom(
+        this.httpService.delete(`http://boards/tasks/project/${projectId}`)
+      );
 
         return this.prisma.project.delete({
-            where: { id: projectId },
+          where: { id: projectId },
         });
     }
 
@@ -164,7 +166,7 @@ export class ProjectsService {
             id: user.id,
             name: `${user.firstName} ${user.lastName}`,
             email: user.email,
-            avatar: user.avatar || null,
+            avatar: user.avatarUrl || null,
         }));
     }
 }

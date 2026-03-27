@@ -130,4 +130,9 @@ export class TasksController {
     this.tasksGateway.server.emit('task:deleted', { id });
     return { message: `Task ${id} deleted` };
   }
+
+  @Delete('project/:projectId')
+  async cleanUpProjectTasks(@Param('projectId') projectId: string) {
+    return this.tasksService.deleteAllTasksByProject(Number(projectId));
+  }
 }

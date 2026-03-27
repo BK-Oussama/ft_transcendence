@@ -54,6 +54,18 @@ export class ProjectMembersController {
     ) {
         return this.projectMemberService.remove(projectId, userId);
     }
+
+    
+  @Get(':userId/role')
+  async getUserRole(@Param('projectId') projectId: string, @Param('userId') userId: string) {
+    const permissions = await this.projectMemberService.checkPermissions(Number(projectId), Number(userId));
+    
+    if (!permissions.hasAccess)
+        throw new ForbiddenException('User is not in this project');
+    
+    return { role: permissions.role };
+  }
+
 }
 
 // add permission check endpoint

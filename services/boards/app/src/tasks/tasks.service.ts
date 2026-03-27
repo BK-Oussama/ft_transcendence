@@ -1,14 +1,19 @@
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { PrismaClient } from '@prisma/client';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { TasksGateway } from './tasks.gateway';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class TasksService {
   prisma = new PrismaClient();
 
-  constructor(private tasksGateway: TasksGateway) {}
+  constructor(
+    private tasksGateway: TasksGateway,
+    private httpService: HttpService
+  ) {}
 
   findAll(projectId: number) {
     return this.prisma.task.findMany({
@@ -17,7 +22,22 @@ export class TasksService {
     });
   }
 
-  async create(createTaskDto: CreateTaskDto & { attachment_url?: string }, userId: number) {
+async create(createTaskDto: CreateTaskDto & { attachment_url?: string }, userId: number) {
+    let userRole: string;
+    try {
+      const response: any = await firstValueFrom(
+        this.httpService.get(`http://dashboard/projects/${createTaskDto.projectId}/members/${userId}/role`)
+      );
+      userRole = response.data.role;
+    } catch (error) {
+      throw new ForbiddenException('You do not have access to this project or the project service is unreachable.');
+    }
+
+    if (userRole === 'VIEWER')
+      throw new ForbiddenException('Viewers do not have permission to create tasks.');
+    if (userRole === 'MEMBER')
+      throw new ForbiddenException('Member do not have permission to create tasks.');
+
     const task = await this.prisma.task.create({
       data: {
         title: createTaskDto.title,
@@ -42,7 +62,6 @@ export class TasksService {
 
     return task;
   }
-
   async update(
     id: number,
     updateTaskDto: UpdateTaskDto & { attachmentUrl?: string },
@@ -120,6 +139,15 @@ export class TasksService {
       }
       throw error;
     }
+  }
+
+async deleteAllTasksByProject(projectId: number) {
+    const deletedTasks = await this.prisma.task.deleteMany({
+      where: { 
+        project_id: projectId
+      }
+    });
+    return { success: true, deletedCount: deletedTasks.count };
   }
 
   /////////////////////////////////////////////////////////
