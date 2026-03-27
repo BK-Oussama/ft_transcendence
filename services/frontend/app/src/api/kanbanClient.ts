@@ -40,7 +40,10 @@ api.interceptors.response.use(
     // Don't try to refresh if the failing request IS the refresh endpoint
     if (original.url?.includes('/auth/refresh')) {
       localStorage.removeItem('access_token');
-      window.location.href = '/login';
+      const currentPath = window.location.pathname;
+      if (currentPath !== '/login' && currentPath !== '/register') {
+        window.location.href = '/login';
+      }
       return Promise.reject(error);
     }
 
