@@ -11,6 +11,7 @@ import { ApiKeyGuard }       from './api-key.guard';
 import { ProjectsService }   from 'src/projects/projects.service';
 import { CreateProjectDto }  from 'src/projects/dto/create-project.dto';
 import { UpdateProjectDto }  from 'src/projects/dto/update-project.dto';
+import { ForbiddenException } from '@nestjs/common';
 
 @ApiTags('projects')
 @ApiSecurity('ApiKeyAuth')
@@ -50,25 +51,37 @@ export class PublicApiController {
     return this.projectsService.create(dto, 0);
   }
 
+  
+  // @ApiParam({ name: 'id', type: Number })
+  // @ApiBody({ type: UpdateProjectDto })
+
   // PUT /api/v1/projects/:id
   @Put('projects/:id')
-  @ApiOperation({ summary: 'Update a project' })
-  @ApiParam({ name: 'id', type: Number })
-  @ApiBody({ type: UpdateProjectDto })
+  @ApiOperation({ summary: 'Update a project - not availbele via public API' })
+  @ApiResponse({ status: 403, description: 'Use the authenthicated API to update projects' }) 
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateProjectDto,
   ) {
-    return this.projectsService.update(id, dto);
+    // return this.projectsService.update(id, dto);
+    throw new ForbiddenException('update is not permitted via public API'); 
   }
+
+
+  // @HttpCode(HttpStatus.NO_CONTENT)
+  // @ApiOperation({ summary: 'Delete a project' })
+  // @ApiParam({ name: 'id', type: Number })
+  // @ApiResponse({ status: 204, description: 'Project deleted' })
+
+
 
   // DELETE /api/v1/projects/:id
   @Delete('projects/:id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Delete a project' })
-  @ApiParam({ name: 'id', type: Number })
-  @ApiResponse({ status: 204, description: 'Project deleted' })
+  @HttpCode(HttpStatus.FORBIDDEN)
+  @ApiOperation({ summary: 'Delete a project - not availbele via public API' })
+  @ApiResponse({ status: 403, description: 'Use the authenthicated API to update projects' })
   remove(@Param('id', ParseIntPipe) id: number) {
-   return this.projectsService.remove(id);
+   // return this.projectsService.remove(id);
+    throw new ForbiddenException('delete is not permitted via public API');
   }
 }
