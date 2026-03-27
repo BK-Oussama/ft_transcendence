@@ -5,6 +5,7 @@ import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/commo
 import { TasksGateway } from './tasks.gateway';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
+import * as https from 'https';
 
 @Injectable()
 export class TasksService {
@@ -22,15 +23,27 @@ export class TasksService {
     });
   }
 
-async create(createTaskDto: CreateTaskDto & { attachment_url?: string }, userId: number) {
+  async create(createTaskDto: CreateTaskDto & { attachment_url?: string }, userId: number, headers: any) {
     let userRole: string;
     try {
       const response: any = await firstValueFrom(
-        this.httpService.get(`http://dashboard/projects/${createTaskDto.projectId}/members/${userId}/role`)
+        this.httpService.get(
+          `https://dashboard:443/projects/${createTaskDto.projectId}/members/${userId}/role`, 
+          {
+            headers: {
+              ...(headers.authorization ? { Authorization: headers.authorization } : {}),
+              ...(headers.cookie ? { Cookie: headers.cookie } : {})
+            },
+            httpsAgent: new https.Agent({ rejectUnauthorized: false })
+          }
+        )
       );
       userRole = response.data.role;
     } catch (error) {
-      throw new ForbiddenException('You do not have access to this project or the project service is unreachable.');
+       const status = error.response?.status || 'Network Error';
+       console.error(`🚨 Dashboard Request Failed [${status}]:`, error.message);
+       
+       throw new ForbiddenException('You do not have access to this project or the project service is unreachable.');
     }
 
     if (userRole === 'VIEWER')
@@ -48,20 +61,20 @@ async create(createTaskDto: CreateTaskDto & { attachment_url?: string }, userId:
         created_by: userId,
         position: 0,
         assigned_to: createTaskDto.assignedTo || null,
-        start_date: createTaskDto.startDate
-          ? new Date(createTaskDto.startDate)
-          : null,
-        due_date: createTaskDto.dueDate
-          ? new Date(createTaskDto.dueDate)
-          : null,
+        start_date: createTaskDto.startDate ? new Date(createTaskDto.startDate) : null,
+        due_date: createTaskDto.dueDate ? new Date(createTaskDto.dueDate) : null,
         attachment_url: createTaskDto.attachment_url || null,
       },
     });
 
     this.tasksGateway.broadcastTaskCreated(task);
+    this.tasksGateway.sendNotification(
+      `New task created "${task.title}"`
+    );
 
     return task;
   }
+
   async update(
     id: number,
     updateTaskDto: UpdateTaskDto & { attachmentUrl?: string },
@@ -95,13 +108,21 @@ async create(createTaskDto: CreateTaskDto & { attachment_url?: string }, userId:
       });
 
       this.tasksGateway.broadcastTaskUpdated(task);
-      if (updateTaskDto.status && updateTaskDto.status !== existingTask.status)
+
+
+      if (updateTaskDto.status && updateTaskDto.status !== existingTask.status) {
         this.tasksGateway.sendNotification(
-          `Task "${task.title}" moved to ${task.status}`,
+          `Task "${task.title}" moved to ${task.status}`, 
+          task.priority
         );
-        else
-          this.tasksGateway.sendNotification(`Task "${task.title}" was updated`);
-        return task;
+      } else {
+        this.tasksGateway.sendNotification(
+          `Task "${task.title}" was updated`, 
+          task.priority
+        );
+      }
+
+      return task;
     } catch (error) {
       if (error.code === 'P2025') {
         throw new NotFoundException(`Task with ID ${id} not found`);
@@ -131,7 +152,10 @@ async create(createTaskDto: CreateTaskDto & { attachment_url?: string }, userId:
       });
 
       this.tasksGateway.broadcastTaskDeleted(id);
-
+      this.tasksGateway.sendNotification(
+        `Task "${task.title}" was deleted`, 
+        task.priority
+      );
       return task;
     } catch (error) {
       if (error.code === 'P2025') {

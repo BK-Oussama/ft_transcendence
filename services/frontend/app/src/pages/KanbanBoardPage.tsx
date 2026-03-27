@@ -556,8 +556,11 @@ export default function BoardPage() {
 
     const socket = io("https://localhost", {
       path: '/api/socket.io/',
-      transports: ["websocket"],
+      transports: ["polling", "websocket"],
       secure: true,
+      withCredentials: true,
+      reconnectionAttempts: 5,
+      timeout: 20000,
     });
 
     // const socket = io("https://localhost:8444", {
@@ -586,17 +589,17 @@ export default function BoardPage() {
       fetchTasks();
     });
 
-    socket.on("notification", (data: { message: string }) => {
-      toast(data.message, {
-        icon: "🔔",
-        position: "top-left",
-        style: {
-          border: "1px solid #3b82f6",
-          padding: "16px",
-          color: "#3b82f6",
-        },
-      });
-    });
+    // socket.on("notification", (data: { message: string }) => {
+    //   toast(data.message, {
+    //     icon: "🔔",
+    //     position: "top-left",
+    //     style: {
+    //       border: "1px solid #3b82f6",
+    //       padding: "16px",
+    //       color: "#3b82f6",
+    //     },
+    //   });
+    // });
 
     return () => {
       socket.disconnect();
@@ -668,10 +671,8 @@ export default function BoardPage() {
           delete dataToSend.createdBy;
         await api.patch(`/tasks/${taskData.id}/`, dataToSend, config);
         queryClient.invalidateQueries({ queryKey: ['my-tasks'] });
-        toast.success("Task updated successfully!");
       } else {
         await api.post("/tasks/", dataToSend, config);
-        toast.success("New task created!");
       }
       setIsModalOpen(false);
       setEditingTask(null);
@@ -687,7 +688,6 @@ export default function BoardPage() {
     try {
       await api.delete(`/tasks/${id}/`);
       queryClient.invalidateQueries({ queryKey: ['my-tasks'] });
-      toast.success("Task deleted successfully");
     } catch (error) {
       console.error("Failed to delete task:", error);
       toast.error("Could not delete task. Please try again.");

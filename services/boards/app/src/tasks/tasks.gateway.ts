@@ -36,11 +36,9 @@ export class TasksGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   handleConnection(client: Socket) {
-    console.log(`Client connected: ${client.id}`);
   }
 
   handleDisconnect(client: Socket) {
-    console.log(`Client disconnected: ${client.id}`);
   }
 
   broadcastTaskCreated(task: Task) {
@@ -51,10 +49,9 @@ export class TasksGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server.emit('task:updated', task);
   }
 
-  sendNotification(message: string) {
-    this.server.emit('notification', { message });
+  sendNotification(message: string, priority?: string) {
+    this.server.emit('notification', { message, priority });
   }
-
   broadcastTaskDeleted(id: number) {
     this.server.emit('task:deleted', { id });
   }
