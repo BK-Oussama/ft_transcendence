@@ -7,6 +7,8 @@ import {
 } from "lucide-react";
 import { membersApi } from "../../api/members";
 import { useQuery } from "@tanstack/react-query";
+import toast from 'react-hot-toast';
+import api from '../../api/kanbanClient';
 
 interface Task {
   id?: number;
@@ -90,6 +92,28 @@ export default function NewTaskModal({
 
   if (!isOpen) return null;
 
+  const handleDownload = async (fileName: string) => {
+    try {
+      const response = await api.get(`/tasks/attachments/${fileName}`, {
+        responseType: 'blob',
+      });
+
+      const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
+      
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.setAttribute('download', fileName); 
+      document.body.appendChild(link);
+      link.click();
+      
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error("Download error:", error);
+      toast.error("Failed to download the file securely.");
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
@@ -126,227 +150,34 @@ export default function NewTaskModal({
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0]);
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const MAX_FILE_SIZE = 500 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("File is too large! Max limit is 500MB.");
+      e.target.value = "";
+      return;
     }
+
+    const allowedTypes = [
+      'image/jpeg', 
+      'image/png', 
+      'application/pdf', 
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'video/mp4',
+      'video/webm',
+      'video/quicktime'
+    ];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Invalid file type! Upload an image, document, or video.");
+      e.target.value = ""; 
+      return;
+    }
+
+    setSelectedFile(file);
   };
 
-  // return (
-  //   <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm">
-  //     <div className="bg-white w-[650px] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-  //       <div className="h-1.5 w-full bg-blue-500" />
-  //       <div className="flex justify-between items-center p-5 border-b border-gray-100">
-  //         <h2 className="text-lg font-bold text-gray-800">
-  //           {taskToEdit ? "Edit Task" : "New Task"}
-  //         </h2>
-  //         <button
-  //           onClick={onClose}
-  //           className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-1.5 rounded-md transition-all"
-  //         >
-  //           <X size={20} />
-  //         </button>
-  //       </div>
-
-  //       <form onSubmit={handleSubmit} className="p-6 flex-1 overflow-y-auto">
-  //         <div className="mb-6">
-  //           <input
-  //             disabled={!isReadOnly}
-  //             readOnly={!isReadOnly}
-  //             type="text"
-  //             value={title}
-  //             onChange={(e) => setTitle(e.target.value)}
-  //             placeholder="Task Title"
-  //             className="w-full p-3 text-lg font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all placeholder-slate-400"
-  //           />
-  //         </div>
-
-  //         <div className="grid grid-cols-2 gap-4 mb-6">
-  //           <div>
-  //             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-  //               Start Date
-  //             </label>
-  //             <div className="relative">
-  //               <input
-  //                 readOnly={!isReadOnly}
-  //                 type="date"
-  //                 value={startDate || ""}
-  //                 onChange={(e) => setStartDate(e.target.value)}
-  //                 className="w-full p-2 pl-10 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none"
-  //               />
-  //               <CalendarIcon
-  //                 size={16}
-  //                 className="absolute left-3 top-2.5 text-slate-400"
-  //               />
-  //             </div>
-  //           </div>
-
-  //           <div>
-  //             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-  //               Due Date
-  //             </label>
-  //             <div className="relative">
-  //               <input
-  //                 readOnly={!isReadOnly}
-  //                 type="date"
-  //                 value={dueDate || ""}
-  //                 onChange={(e) => setDueDate(e.target.value)}
-  //                 className="w-full p-2 pl-10 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none"
-  //               />
-  //               <CalendarIcon
-  //                 size={16}
-  //                 className="absolute left-3 top-2.5 text-slate-400"
-  //               />
-  //             </div>
-  //           </div>
-  //         </div>
-
-  //         <div className="mb-6">
-  //           <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-  //             Priority
-  //           </label>
-  //           <div className="flex gap-2">
-  //             {["Low", "Medium", "High"].map((p) => (
-  //               <button
-  //                 disabled={!isReadOnly}
-  //                 key={p}
-  //                 type="button"
-  //                 onClick={() => setPriority(p)}
-  //                 className={`px-3 py-1.5 rounded text-sm font-medium border transition-all 
-  //                   ${
-  //                     priority === p
-  //                       ? "bg-blue-50 border-blue-500 text-blue-700"
-  //                       : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
-  //                   }
-  //                   ${
-  //                     isReadOnly
-  //                       ? "hover:bg-gray-50 cursor-pointer"
-  //                       : "cursor-default opacity-80"
-  //                   }`}
-  //               >
-  //                 {p}
-  //               </button>
-  //             ))}
-  //           </div>
-  //         </div>
-
-  //         <div className="mb-6">
-  //           <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-  //             Assign To
-  //           </label>
-  //           <div className="relative">
-  //             <select
-  //               disabled={!isReadOnly}
-  //               value={assignedTo || ""}
-  //               onChange={(e) =>
-  //                 setAssignedTo(
-  //                   e.target.value ? Number(e.target.value) : undefined,
-  //                 )
-  //               }
-  //               className="w-full appearance-none bg-white border border-gray-200 text-gray-700 py-2 px-3 pr-8 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 hover:border-gray-300 cursor-pointer"
-  //             >
-  //               <option value="">Unassigned</option>
-  //               {USERS.map((user) => (
-  //                 <option key={user.id} value={user.id}>
-  //                   {user.name}
-  //                 </option>
-  //               ))}
-  //             </select>
-  //             {isReadOnly && (
-  //               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
-  //                 <ChevronDown size={16} />
-  //               </div>
-  //             )}
-  //           </div>
-  //         </div>
-
-  //         <div className="mb-6 border border-transparent rounded-xl overflow-hidden transition-all">
-  //           <textarea
-  //             disabled={!isReadOnly}
-  //             value={description}
-  //             onChange={(e) => setDescription(e.target.value)}
-  //             placeholder="Add more details to this task..."
-  //             rows={6}
-  //             className="w-full p-4 resize-none focus:outline-none text-slate-700 text-sm leading-relaxed bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all"
-  //           />
-  //         </div>
-
-  //         <div className="mb-6">
-  //           <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-  //             Attachments
-  //           </label>
-
-  //           {isReadOnly && (
-  //             <input
-  //               type="file"
-  //               ref={fileInputRef}
-  //               onChange={handleFileChange}
-  //               className="hidden"
-  //             />
-  //           )}
-
-  //           <div
-  //             onClick={isReadOnly ? handleFileClick : undefined}
-  //             className={`border border-dashed rounded-xl p-4 flex items-center justify-center gap-2 transition-colors 
-  //               ${
-  //                 selectedFile || existingFile
-  //                   ? "bg-blue-50 border-blue-300 text-blue-600"
-  //                   : "border-gray-300 text-gray-500"
-  //               }
-  //               ${
-  //                 isReadOnly
-  //                   ? "hover:bg-gray-50 cursor-pointer"
-  //                   : "cursor-default opacity-80"
-  //               }
-  //             `}
-  //           >
-  //             <Paperclip size={16} />
-  //             <span className="text-sm font-medium">
-  //               {selectedFile
-  //                 ? selectedFile.name
-  //                 : existingFile
-  //                   ? existingFile
-  //                   : isReadOnly
-  //                     ? "No attachments"
-  //                     : "Add File"}
-  //             </span>
-  //           </div>
-
-  //           {!selectedFile && existingFile && (
-  //             <div className="mt-2 text-xs text-right text-blue-500 hover:underline">
-  //               <a
-  //                 href={`https://localhost:8444/uploads/${existingFile}`}
-  //                 target="_blank"
-  //                 rel="noreferrer"
-  //               >
-  //                 View / Download
-  //               </a>
-  //             </div>
-  //           )}
-  //         </div>
-
-  //         <div className="flex justify-end gap-3 pt-2 mt-4 border-t border-gray-50 pt-4">
-  //           {isReadOnly && (
-  //             <button
-  //               type="button"
-  //               onClick={onClose}
-  //               className="px-5 py-2 rounded-xl text-slate-500 font-bold hover:bg-slate-50 hover:text-slate-700 transition-colors"
-  //             >
-  //               Cancel
-  //             </button>
-  //           )}
-  //           {isReadOnly && (
-  //             <button
-  //               type="submit"
-  //               className="px-6 py-2 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 shadow-md shadow-blue-500/20 transition-all"
-  //             >
-  //               {taskToEdit ? "Save Changes" : "Create Task"}
-  //             </button>
-  //           )}
-  //         </div>
-  //       </form>
-  //     </div>
-  //   </div>
-  // );
 
 
   return (
@@ -458,17 +289,6 @@ export default function NewTaskModal({
             Assign To
           </label>
           <div className="relative">
-            {/* <select
-              disabled={!isReadOnly}
-              value={assignedTo || ''}
-              onChange={(e) => setAssignedTo(e.target.value ? Number(e.target.value) : undefined)}
-              className="w-full pl-4 pr-8 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm text-slate-600 font-medium focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none appearance-none cursor-pointer transition-all"
-            >
-              <option value="">Unassigned</option>
-              {USERS.map((user) => (
-                <option key={user.id} value={user.id}>{user.name}</option>
-              ))}
-            </select> */}
             
             <select
               disabled={!isReadOnly}
@@ -558,14 +378,15 @@ export default function NewTaskModal({
                   <span className="text-slate-300">|</span>
                 </>
               )}
-              <a 
-                href={`https://localhost:8444/uploads/${existingFile}`} 
-                target="_blank" 
-                rel="noreferrer" 
+
+              <button 
+                type="button"
+                onClick={() => handleDownload(existingFile)}
                 className="text-blue-500 hover:text-blue-700 font-bold transition-colors"
               >
-                View / Download
-              </a>
+                Download
+              </button>
+
             </div>
           )}
 

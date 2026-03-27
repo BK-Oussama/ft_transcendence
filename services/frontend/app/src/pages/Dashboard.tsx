@@ -65,31 +65,6 @@ const Dashboard = () => {
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] }),
     });
 
-    // const [workspaces, setWorkspaces] = useState([
-    //     {
-    //         id: 1,
-    //         title: 'Marketing Campaign',
-    //         owner: 'Sarah Smith',
-    //         icon: Megaphone,
-    //         iconBgColor: 'bg-orange-100',
-    //     },
-    //     {
-    //         id: 2,
-    //         title: 'Engineering Sprint',
-    //         owner: 'Engineering Team',
-    //         icon: Settings,
-    //         iconBgColor: 'bg-blue-100',
-    //         members: 8,
-    //     },
-    //     {
-    //         id: 3,
-    //         title: 'Product Launch',
-    //         owner: 'John Doe',
-    //         icon: Rocket,
-    //         iconBgColor: 'bg-pink-100',
-    //         members: 5,
-    //     },
-    // ]);
     
     const handleCreateProject = (formData: WorkspaceData) => {
         console.log('New project created:', formData);

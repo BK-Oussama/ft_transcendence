@@ -58,6 +58,13 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 413) {
+      toast.error("The file you are trying to upload is too large for the server.");
+    }
+    return Promise.reject(error);
+  }
   const token = localStorage.getItem('access_token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;

@@ -5,7 +5,6 @@ interface WorkspaceCalendarProps {
     tasks: Task[];
 }
 
-
 interface Task {
     id: number;
     title: string;
@@ -17,9 +16,6 @@ interface Task {
     workspace_id: number;
     projectName?: string;
 }
-
-
-
 
 export default function WorkspaceCalendar({ tasks }: WorkspaceCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());

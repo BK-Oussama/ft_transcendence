@@ -9,6 +9,17 @@ import * as https from 'https';
 
 @Injectable()
 export class TasksService {
+
+async checkFileAccess(fileName: string, userId: number): Promise<boolean> {
+    const task = await this.prisma.task.findFirst({
+      where: { attachment_url: fileName },
+    });
+
+    if (!task) {
+      throw new NotFoundException('File not found in database');
+    }
+    return true; 
+  }
   prisma = new PrismaClient();
 
   constructor(

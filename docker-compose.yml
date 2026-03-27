@@ -111,6 +111,8 @@ services:
     depends_on:
       boards-db:
         condition: service_healthy
+    volumes:
+      - ${HOME}/ft_dbs/ft_uploads:/app/uploads
     restart: always
 
   boards-db:
