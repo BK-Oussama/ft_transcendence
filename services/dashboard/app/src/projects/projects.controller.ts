@@ -75,13 +75,13 @@ export class ProjectsController {
     }
 
     // for internal call to the auth service
-    @Get('users/search')
-    @UseGuards(JwtAuthGuard)
-    async searchUsers(
-        @Query('search') search: string,
-        @Headers('authorization') authorization: string,
-    ) {
-        const token = authorization?.replace('Bearer ', '');
-        return this.projectsService.searchUsers(search, token);
-    }
+    // @Get('users/search')
+    // @UseGuards(JwtAuthGuard)
+    // async searchUsers(
+    //     @Query('search') search: string,
+    //     @Headers('authorization') authorization: string,
+    // ) {
+    //     const token = authorization?.replace('Bearer ', '');
+    //     return this.projectsService.searchUsers(search, token);
+    // }
 }
