@@ -94,7 +94,7 @@ export class TasksController {
         fileIsRequired: false, 
         validators: [
           new MaxFileSizeValidator({ maxSize: 500 * 1024 * 1024 }),
-          new FileTypeValidator({ fileType: '.(jpg|jpeg|png|pdf|docx|mp4|mov|webm)$' }),
+          // new FileTypeValidator({ fileType: '.(jpg|jpeg|png|pdf|docx|mp4|mov|webm)$' }),
         ],
         errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
       }),
