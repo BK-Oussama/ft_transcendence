@@ -72,6 +72,12 @@ const AddMemberModal = ({ isOpen, onClose, projectId, existingMemberIds }: AddMe
         return () => clearTimeout(timeout);
     }, [searchQuery, existingMemberIds, sortBy, sortOrder, page]);
 
+    const handleAdd = (userId: number) => {
+        const role = selectedRole[userId] || "MEMBER";
+        addMemberMutation.mutate({ userId, role });
+        setAddedUsers((prev) => [...prev, userId]);
+    };
+
     const getInitials = (name: string) =>
         name.split(" ").map((n) => n[0]).join("").toUpperCase();
 
